@@ -4,7 +4,7 @@ Smart Home Simulator is a software application that simulates a smart home envir
 
 ## General Information
 
-![alt text](https://github.com/YoungMame/smart-home-sim/blob/main/functioning.jpg?raw=true)
+![alt text](https://github.com/YoungMame/smart-home-sim/blob/main/media/functionning.png?raw=true)
 
 The system implements a core simulation engine that manages the state of various smart devices and their interactions. Users can add, remove, and configure devices, as well as create automation rules to control device behavior based on specific conditions. The simulator also includes a dashboard for monitoring device status and activity.
 It also exposes an API for developpers to develop their own applications on top of the simulator.
