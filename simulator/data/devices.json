@@ -1,0 +1,14 @@
+[
+  {
+    "label": "Lampe du salon",
+    "room": "salon",
+    "model": "ikea_bulb_v1",
+    "id": "lamp_salon"
+  },
+  {
+    "label": "Lampe chambre",
+    "room": "chambre",
+    "model": "philips_hue_v2",
+    "id": "lamp_chambre"
+  }
+]
