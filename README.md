@@ -1,5 +1,14 @@
 # Smart Home Simulator
 
+## Documentation
+
+- [ARCHITECTURE.md](ARCHITECTURE.md) — System architecture diagram and component overview
+- [DATA_MODEL.md](DATA_MODEL.md) — Database schema and data structures
+- [CODING_STYLE.md](CODING_STYLE.md) — Code formatting and style conventions
+- [CONTRIBUTING.md](CONTRIBUTING.md) — Guidelines for contributing to the project
+
+---
+
 Smart Home Simulator is a software application that simulates a smart home environment. It allows users to create and manage virtual smart devices, such as lights, thermostats, and security cameras, and control them through a user-friendly interface. The simulator provides a realistic experience of how smart home technology works and can be used for testing and educational purposes.
 
 ![alt text](https://github.com/YoungMame/smart-home-sim/blob/main/media/functionning.png?raw=true)
