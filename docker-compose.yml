@@ -6,7 +6,7 @@ services:
     build: ./simulator
     container_name: smart-home-core
     ports:
-      - "4000:4000"   # Core service API
+      - "4000:4000"   # Simulator API — logs, data, event triggers
     environment:
       - NODE_ENV=development
       - MQTT_BROKER_URL=mqtt://mqtt-broker:1883
@@ -30,8 +30,8 @@ services:
     build: ./api
     container_name: smart-home-api
     ports:
-      - "3000:3000"   # REST API
-      - "8080:8080"   # WebSocket
+      - "3000:3000"   # Per-device REST APIs
+      - "8080:8080"   # Per-device WebSocket
     environment:
       - NODE_ENV=development
       - MQTT_BROKER_URL=mqtt://mqtt-broker:1883

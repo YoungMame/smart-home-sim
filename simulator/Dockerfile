@@ -1,7 +1,7 @@
 # ────────────────────────────────────────────────────────────────────────────
 # Stage 1 — Build
 # ────────────────────────────────────────────────────────────────────────────
-FROM alpine:3.21
+FROM alpine:3.21 AS builder
 
 RUN apk add --no-cache \
         build-base \
@@ -27,6 +27,10 @@ RUN cmake -B build -G Ninja \
     && cmake --build build --parallel \
     && cmake --install build
 
+# ────────────────────────────────────────────────────────────────────────────
+# Stage 2 — Runtime
+# ────────────────────────────────────────────────────────────────────────────
+FROM alpine:3.21 AS runtime
 
 # Only the runtime shared libraries (no dev headers).
 RUN apk add --no-cache \
@@ -37,7 +41,7 @@ RUN apk add --no-cache \
 COPY --from=builder /install/bin/smart-home-sim  /usr/local/bin/smart-home-sim
 COPY --from=builder /install/share/smart-home-sim/data /data
 
-# Internal port exposed to other Docker services (not to the end user).
+# Simulator API — logs, simulation data, event triggers (user-facing).
 EXPOSE 4000
 
 ENV MQTT_BROKER_URL=mqtt://mqtt-broker:1883
