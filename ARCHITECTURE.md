@@ -15,7 +15,7 @@ graph TD
     REST_ADAPTER[REST Adapter]
     WS_ADAPTER[WebSocket Adapter]
 
-    DEVICE_CONST[Device Definitions<br>(supported devices)]
+    DEVICE_CONST[Device Definitions(supported devices)]
 
     DB[(SQLite Database)]
 
@@ -50,4 +50,5 @@ graph TD
 
     CORE --> DB
     API --> DB
+
 ```
