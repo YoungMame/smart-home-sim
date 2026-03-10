@@ -1,6 +1,7 @@
+```mermaid
 graph TD
 
-    API[API Layer]
+    USER([User / External Client])
 
     CORE[Simulator Core]
 
@@ -14,11 +15,19 @@ graph TD
     REST_ADAPTER[REST Adapter]
     WS_ADAPTER[WebSocket Adapter]
 
-    MQTT_BROKER[MQTT Broker]
-
     DEVICE_CONST[Device Definitions<br>(supported devices)]
 
     DB[(SQLite Database)]
+
+    subgraph DOCKER["Docker"]
+        MQTT_BROKER["MQTT Broker<br>:1883 / :9001"]
+        API["Virtual Device API<br>:3000"]
+        WS_SERVER["WebSocket Server<br>:8080"]
+    end
+
+    USER -->|"MQTT :1883"| MQTT_BROKER
+    USER -->|"HTTP :3000"| API
+    USER -->|"WS :8080"| WS_SERVER
 
     API -->|trigger actions / fetch data| CORE
 
@@ -34,8 +43,11 @@ graph TD
     ADAPTER_MANAGER --> WS_ADAPTER
 
     MQTT_ADAPTER --> MQTT_BROKER
+    REST_ADAPTER --> API
+    WS_ADAPTER --> WS_SERVER
 
     DEVICE_ENGINE --> DEVICE_CONST
 
     CORE --> DB
     API --> DB
+```

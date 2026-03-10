@@ -15,8 +15,6 @@ The PROTOCOLS.md file describes the communication protocols supported by the sim
 ### Core
 C++: The core simulation engine is implemented in C++ for performance and efficiency.
 
-MQTT Broker: Used for communication between the simulator and external applications or devices.
-
 Fetch library: Used for making HTTP requests to the API.
 
 WebSocket library: Used for real-time communication between the simulator and the dashboard.
@@ -24,10 +22,42 @@ WebSocket library: Used for real-time communication between the simulator and th
 ### Storage
 SQLite: Used for storing device configurations, user data, and simulation state persistently.
 
+### Infrastructure
+Docker: All externally-exposed services run in Docker containers and are accessible to users and external clients.
+
+| Service | Image / Build | Exposed ports |
+|---|---|---|
+| MQTT Broker | `eclipse-mosquitto:2.0` | `1883` (TCP), `9001` (WS) |
+| Virtual Device API | `./api` | `3000` (HTTP REST) |
+| WebSocket Server | `./api` | `8080` (WS) |
+
 ### Api
 Express.js: The API is built using Express.js, a web application framework for Node.js, to handle HTTP requests and responses.
 
 ### Dashboard
 React: The dashboard is built using React for a responsive and interactive user interface.
+
+## Running with Docker
+
+Start all services with:
+
+```bash
+docker compose up -d
+```
+
+Stop all services:
+
+```bash
+docker compose down
+```
+
+### Exposed endpoints
+
+| Protocol | URL | Description |
+|---|---|---|
+| MQTT | `mqtt://localhost:1883` | MQTT broker (TCP) |
+| MQTT over WS | `ws://localhost:9001` | MQTT broker (WebSocket) |
+| HTTP REST | `http://localhost:3000` | Virtual device API |
+| WebSocket | `ws://localhost:8080` | Real-time device events |
 
 

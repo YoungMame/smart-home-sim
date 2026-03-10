@@ -1,0 +1,44 @@
+version: '3.9'
+
+services:
+
+  core:
+    build: ./simulator
+    container_name: smart-home-core
+    ports:
+      - "4000:4000"   # Core service API
+    environment:
+      - NODE_ENV=development
+      - MQTT_BROKER_URL=mqtt://mqtt-broker:1883
+    depends_on:
+      - mqtt-broker
+    restart: unless-stopped
+
+  mqtt-broker:
+    image: eclipse-mosquitto:2.1.2-alpine
+    container_name: smart-home-mqtt
+    ports:
+      - "1883:1883"   # MQTT TCP
+      - "9001:9001"   # MQTT over WebSocket
+    volumes:
+      - ./mosquitto/config/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+      - mosquitto_data:/mosquitto/data
+      - mosquitto_log:/mosquitto/log
+    restart: unless-stopped
+
+  api:
+    build: ./api
+    container_name: smart-home-api
+    ports:
+      - "3000:3000"   # REST API
+      - "8080:8080"   # WebSocket
+    environment:
+      - NODE_ENV=development
+      - MQTT_BROKER_URL=mqtt://mqtt-broker:1883
+    depends_on:
+      - mqtt-broker
+    restart: unless-stopped
+
+volumes:
+  mosquitto_data:
+  mosquitto_log:
