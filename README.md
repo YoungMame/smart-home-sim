@@ -3,7 +3,7 @@
 ## Documentation
 
 - [ARCHITECTURE.md](ARCHITECTURE.md) — System architecture diagram and component overview
-- [DATA_MODEL.md](DATA_MODEL.md) — Database schema and data structures
+- [DATA_MODEL.md](DATA_MODEL.md) — Classes and data structures that compose the project
 - [CODING_STYLE.md](CODING_STYLE.md) — Code formatting and style conventions
 - [CONTRIBUTING.md](CONTRIBUTING.md) — Guidelines for contributing to the project
 
