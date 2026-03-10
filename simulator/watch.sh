@@ -2,12 +2,12 @@
 set -e
 
 echo "[watch] Configuring cmake..."
-cmake -B /src/build -G Ninja \
+cmake -B /dist -G Ninja \
       -DCMAKE_BUILD_TYPE=Debug \
-      -S /src
+      -S /simulator/src
 
 echo "[watch] Building..."
-cmake --build /src/build --parallel
+cmake --build /dist --parallel
 
 echo "[watch] Starting simulator..."
-exec /src/build/smart-home-sim
+exec /dist/smart-home-sim

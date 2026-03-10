@@ -6,7 +6,6 @@
 #include "core/scheduler/event_scheduler.hpp"
 #include "core/device_engine/device_engine.hpp"
 
-// Forward the OS signal to the scheduler so run() exits cleanly.
 static void signal_handler(int /*sig*/) {
     EventScheduler::instance().stop();
 }

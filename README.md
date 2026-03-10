@@ -14,7 +14,7 @@ Smart Home Simulator is a software application that simulates a smart home envir
 ![alt text](https://github.com/YoungMame/smart-home-sim/blob/main/media/functionning.png?raw=true)
 
 ## System Architecture
-The system arhcitecure is defined in ARCHITECTURE.md, which outlines the modular design of the simulator, including the API layer, core simulation engine, event scheduler, device engine, adapter manager, and supported communication protocols.
+The system architecture is defined in ARCHITECTURE.md, which outlines the modular design of the simulator, including the API layer, core simulation engine, event scheduler, device engine, adapter manager, and supported communication protocols.
 
 ## Protocols
 The PROTOCOLS.md file describes the communication protocols supported by the simulator, such as MQTT and HTTP, which allow for seamless integration with external applications and devices.
@@ -41,7 +41,7 @@ Docker: All externally-exposed services run in Docker containers and are accessi
 | WebSocket Server | `./api` | `8080` (WS) |
 
 ### Api
-Express.js: The API is built using Express.js, a web application framework for Node.js, to handle HTTP requests and responses.
+Express.js: The Node.js API container acts as a **protocol bridge** between HTTP/WebSocket clients and the MQTT broker. It translates `POST /devices/:type/:id` calls into MQTT commands and streams real-time device state over WebSocket by subscribing to MQTT topics. For historical data and logs it proxies requests to the Simulator API (`core:4000`). Clients that already support MQTT can skip this layer and connect directly to the broker.
 
 ### Dashboard
 React: The dashboard is built using React for a responsive and interactive user interface.

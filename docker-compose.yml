@@ -10,18 +10,15 @@ services:
     environment:
       - MQTT_BROKER_URL=mqtt://mqtt-broker:1883
     volumes:
-      - ./simulator:/src
+      - simulator_dist:/dist
     depends_on:
       - mqtt-broker
     restart: unless-stopped
     develop:
       watch:
         - action: sync+restart
-          path: ./simulator
-          target: /src
-          ignore:
-            - build/
-            - .gitkeep
+          path: ./simulator/src
+          target: /simulator/src
 
   mqtt-broker:
     image: eclipse-mosquitto:2.1.2-alpine
@@ -58,3 +55,4 @@ services:
 volumes:
   mosquitto_data:
   mosquitto_log:
+  simulator_dist:

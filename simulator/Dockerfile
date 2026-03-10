@@ -10,20 +10,20 @@ RUN apk add --no-cache \
         mosquitto-dev \
         openssl-dev
 
-WORKDIR /src
+WORKDIR /build
 
-# Copy only the manifest files first to benefit from layer caching.
-COPY CMakeLists.txt .
+# Copy only the manifest first to benefit from layer caching.
+COPY src/CMakeLists.txt .
 
-# Copy the rest of the source tree.
-COPY . .
+# Copy the full source tree.
+COPY src/ .
 
 # Configure and build in Release mode.
-RUN cmake -B build -G Ninja \
+RUN cmake -B dist -G Ninja \
         -DCMAKE_BUILD_TYPE=Release \
         -DCMAKE_INSTALL_PREFIX=/install \
-    && cmake --build build --parallel \
-    && cmake --install build
+    && cmake --build dist --parallel \
+    && cmake --install dist
 
 # Runtime
 FROM alpine:3.21 AS runtime
@@ -42,7 +42,7 @@ EXPOSE 4000
 
 ENV MQTT_BROKER_URL=mqtt://mqtt-broker:1883
 ENV CORE_PORT=4000
-# Path to the device JSON files inside the container (copied from simulator/data/ at build time).
+# Path to the device JSON files inside the container (copied from src/data/ at build time).
 ENV SMART_HOME_DATA_DIR=/data
 
 ENTRYPOINT ["smart-home-sim"]
@@ -61,11 +61,11 @@ RUN apk add --no-cache \
         mosquitto-dev \
         openssl-dev
 
-WORKDIR /src
+WORKDIR /simulator/src
 
 ENV MQTT_BROKER_URL=mqtt://mqtt-broker:1883
 ENV CORE_PORT=4000
-ENV SMART_HOME_DATA_DIR=/src/data
+ENV SMART_HOME_DATA_DIR=/simulator/src/data
 
 EXPOSE 4000
 
