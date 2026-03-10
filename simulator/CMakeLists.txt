@@ -42,15 +42,16 @@ find_path(MOSQUITTO_INCLUDE mosquitto.h REQUIRED)
 # Add source files here as they are created in each sub-module.
 # Using explicit lists (preferred over GLOB) so CMake reruns on new files.
 set(CORE_SOURCES
-  # core/device_engine/device_engine.cpp
+  core/scheduler/event_scheduler.cpp
+  core/device_engine/device_engine.cpp
   # core/event_engine/event_engine.cpp
-  # core/scheduler/scheduler.cpp
 )
 
 set(DEVICE_SOURCES
-  # devices/light/light.cpp
+  devices/virtual_device.cpp
+  devices/light/virtual_light.cpp
+  devices/thermostat/virtual_thermostat.cpp
   # devices/motion_sensor/motion_sensor.cpp
-  # devices/thermostat/thermostat.cpp
 )
 
 set(PROTOCOL_SOURCES

@@ -11,7 +11,7 @@
   },
   "nest_thermostat": {
     "type": "thermostat",
-    "protocol": "ws",
+    "protocol": "ws   ",
     "capabilities": ["temperature", "target_temperature"]
   }
 }

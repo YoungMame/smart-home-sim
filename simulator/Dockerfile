@@ -1,6 +1,4 @@
-# ────────────────────────────────────────────────────────────────────────────
-# Stage 1 — Build
-# ────────────────────────────────────────────────────────────────────────────
+# Build
 FROM alpine:3.21 AS builder
 
 RUN apk add --no-cache \
@@ -27,9 +25,7 @@ RUN cmake -B build -G Ninja \
     && cmake --build build --parallel \
     && cmake --install build
 
-# ────────────────────────────────────────────────────────────────────────────
-# Stage 2 — Runtime
-# ────────────────────────────────────────────────────────────────────────────
+# Runtime
 FROM alpine:3.21 AS runtime
 
 # Only the runtime shared libraries (no dev headers).
@@ -46,5 +42,34 @@ EXPOSE 4000
 
 ENV MQTT_BROKER_URL=mqtt://mqtt-broker:1883
 ENV CORE_PORT=4000
+# Path to the device JSON files inside the container (copied from simulator/data/ at build time).
+ENV SMART_HOME_DATA_DIR=/data
 
 ENTRYPOINT ["smart-home-sim"]
+
+# Dev (watch mode)
+# docker compose watch
+
+FROM alpine:3.21 AS dev
+
+RUN apk add --no-cache \
+        build-base \
+        cmake \
+        ninja \
+        git \
+        ca-certificates \
+        mosquitto-dev \
+        openssl-dev
+
+WORKDIR /src
+
+ENV MQTT_BROKER_URL=mqtt://mqtt-broker:1883
+ENV CORE_PORT=4000
+ENV SMART_HOME_DATA_DIR=/src/data
+
+EXPOSE 4000
+
+COPY watch.sh /watch.sh
+RUN chmod +x /watch.sh
+
+ENTRYPOINT ["/watch.sh"]
