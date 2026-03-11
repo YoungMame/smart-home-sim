@@ -40,11 +40,6 @@ void EventEngine::process_event(const Event& event) {
         handle_state_change(event);
     } else if (event.type == "trigger") {
         handle_trigger(event);
-    } else {
-        // Physical simulation events (weather, motion, timer…)
-        // TODO: route to scenario engine / adapter manager
-        std::cout << "[EventEngine] Simulation event: " << event.type
-                  << " device=" << event.device_id << "\n";
     }
 }
 

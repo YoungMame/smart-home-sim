@@ -8,7 +8,8 @@ RUN apk add --no-cache \
         git \
         ca-certificates \
         mosquitto-dev \
-        openssl-dev
+        openssl-dev \
+        sqlite-dev
 
 WORKDIR /build
 
@@ -31,7 +32,8 @@ FROM alpine:3.21 AS runtime
 # Only the runtime shared libraries (no dev headers).
 RUN apk add --no-cache \
         mosquitto-libs \
-        libssl3
+        libssl3 \
+        sqlite-libs
 
 # Copy the installed binary and data files from the build stage.
 COPY --from=builder /install/bin/smart-home-sim  /usr/local/bin/smart-home-sim
@@ -59,7 +61,8 @@ RUN apk add --no-cache \
         git \
         ca-certificates \
         mosquitto-dev \
-        openssl-dev
+        openssl-dev \
+        sqlite-dev
 
 WORKDIR /simulator/src
 
@@ -86,7 +89,8 @@ RUN apk add --no-cache \
         git \
         ca-certificates \
         mosquitto-dev \
-        openssl-dev
+        openssl-dev \
+        sqlite-dev
 
 WORKDIR /build
 COPY src/ .
