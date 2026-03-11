@@ -53,6 +53,13 @@ services:
           ignore:
             - node_modules/
 
+  test:
+    build:
+      context: ./simulator
+      target: test
+    container_name: smart-home-tests
+    profiles: ["test"]
+
 volumes:
   mosquitto_data:
   mosquitto_log:

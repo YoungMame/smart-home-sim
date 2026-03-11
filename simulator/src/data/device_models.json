@@ -1,17 +1,20 @@
 {
   "ikea_bulb_v1": {
+    "label": "IKEA Bulb v1",
     "type": "light",
     "protocol": "mqtt",
     "capabilities": ["on_off", "brightness"]
   },
   "philips_hue_v2": {
+    "label": "Philips Hue v2",
     "type": "light",
     "protocol": "rest",
     "capabilities": ["on_off", "brightness", "color"]
   },
   "nest_thermostat": {
+    "label": "Nest Thermostat",
     "type": "thermostat",
-    "protocol": "ws   ",
+    "protocol": "ws",
     "capabilities": ["temperature", "target_temperature"]
   }
 }

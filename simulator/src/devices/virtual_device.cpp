@@ -5,19 +5,16 @@
 VirtualDevice::VirtualDevice(std::string id,
                               std::string label,
                               std::string room,
-                              std::string model,
-                              std::string protocol,
-                              std::vector<std::string> capabilities)
+                              const VirtualDeviceModel* model)
     : id_(std::move(id))
     , label_(std::move(label))
     , room_(std::move(room))
-    , model_(std::move(model))
-    , protocol_(std::move(protocol))
-    , capabilities_(std::move(capabilities))
+    , model_(model)
 {}
 
 bool VirtualDevice::has_capability(const std::string& cap) const {
-    return std::find(capabilities_.begin(), capabilities_.end(), cap) != capabilities_.end();
+    const auto& caps = model_->capabilities;
+    return std::find(caps.begin(), caps.end(), cap) != caps.end();
 }
 
 std::string VirtualDevice::get_state(const std::string& key) const {

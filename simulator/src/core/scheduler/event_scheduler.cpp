@@ -2,8 +2,7 @@
 
 #include <iostream>
 
-// TODO: uncomment once EventEngine is implemented.
-// #include "../event_engine/event_engine.hpp"
+#include "../event_engine/event_engine.hpp"
 
 EventScheduler& EventScheduler::instance() {
     static EventScheduler inst;
@@ -49,7 +48,7 @@ void EventScheduler::run() {
         queue_.pop();
         lock.unlock();
 
-        // TODO: EventEngine::instance().process_event(event);
+        EventEngine::instance().process_event(event);
         std::cout << "[EventScheduler] Dispatching event: type=" << event.type
                   << " device=" << event.device_id << "\n";
     }

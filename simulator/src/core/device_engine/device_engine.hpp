@@ -5,6 +5,7 @@
 #include <unordered_map>
 
 #include "virtual_device.hpp"
+#include "virtual_device_model.hpp"
 #include "event_engine/event.hpp"
 
 enum class DeviceType {
@@ -39,8 +40,10 @@ public:
     // Forward an event to the target device.
     void update_device_state(const std::string& device_id, const Event& event);
 
+    void log_devices() const;
 private:
     DeviceEngine() = default;
 
+    std::unordered_map<std::string, VirtualDeviceModel>          models_;
     std::unordered_map<std::string, std::unique_ptr<VirtualDevice>> devices_;
 };

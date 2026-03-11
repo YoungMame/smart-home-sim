@@ -60,6 +60,12 @@ Stop all services:
 docker compose down
 ```
 
+### Running unit tests
+
+```bash
+docker compose --profile test run --build --rm test
+```
+
 ### Exposed endpoints
 
 | Protocol | URL | Description |

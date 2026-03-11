@@ -44,7 +44,7 @@ find_path(MOSQUITTO_INCLUDE mosquitto.h REQUIRED)
 set(CORE_SOURCES
   core/scheduler/event_scheduler.cpp
   core/device_engine/device_engine.cpp
-  # core/event_engine/event_engine.cpp
+  core/event_engine/event_engine.cpp
 )
 
 set(DEVICE_SOURCES
@@ -64,16 +64,14 @@ set(SERVER_SOURCES
   server/simulator_api.cpp
 )
 
-add_executable(smart-home-sim
-  main.cpp
+# ── sim_core static library (shared by the main binary and tests) ─────────────
+add_library(sim_core STATIC
   ${CORE_SOURCES}
   ${DEVICE_SOURCES}
-  ${PROTOCOL_SOURCES}
   ${SERVER_SOURCES}
 )
 
-# ── Include directories ───────────────────────────────────────────────────────
-target_include_directories(smart-home-sim PRIVATE
+target_include_directories(sim_core PUBLIC
   ${CMAKE_CURRENT_SOURCE_DIR}
   ${CMAKE_CURRENT_SOURCE_DIR}/core
   ${CMAKE_CURRENT_SOURCE_DIR}/devices
@@ -81,13 +79,21 @@ target_include_directories(smart-home-sim PRIVATE
   ${MOSQUITTO_INCLUDE}
 )
 
-# ── Link libraries ────────────────────────────────────────────────────────────
-target_link_libraries(smart-home-sim PRIVATE
+target_link_libraries(sim_core PUBLIC
   Threads::Threads
   ${MOSQUITTO_LIB}
   nlohmann_json::nlohmann_json
   httplib::httplib
 )
+
+target_compile_options(sim_core PRIVATE
+  $<$<CONFIG:Release>:-O2>
+  $<$<CONFIG:Debug>:-g>
+)
+
+# ── Main executable ───────────────────────────────────────────────────────────
+add_executable(smart-home-sim main.cpp)
+target_link_libraries(smart-home-sim PRIVATE sim_core)
 
 # ── Compile options ───────────────────────────────────────────────────────────
 target_compile_options(smart-home-sim PRIVATE
@@ -98,3 +104,9 @@ target_compile_options(smart-home-sim PRIVATE
 # ── Install ───────────────────────────────────────────────────────────────────
 install(TARGETS smart-home-sim DESTINATION bin)
 install(DIRECTORY data/ DESTINATION share/smart-home-sim/data)
+
+# ── Tests ─────────────────────────────────────────────────────────────────────
+if(BUILD_TESTS)
+  enable_testing()
+  add_subdirectory(../tests tests_build)
+endif()

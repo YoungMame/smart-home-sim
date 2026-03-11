@@ -49,11 +49,11 @@ void SimulatorApi::register_routes() {
         json body = json::array();
         for (const auto& [id, device] : devices) {
             body.push_back({
-                {"id",       device->id()},
-                {"label",    device->label()},
-                {"room",     device->room()},
-                {"model",    device->model()},
-                {"protocol", device->protocol()}
+                {"id",      std::string(device->id())},
+                {"label",    std::string(device->label())},
+                {"room",     std::string(device->room())},
+                {"model",    std::string(device->model()->label)},
+                {"protocol", std::string(device->protocol())}
             });
         }
 
@@ -72,11 +72,11 @@ void SimulatorApi::register_routes() {
         }
 
         json body = {
-            {"id",       device->id()},
-            {"label",    device->label()},
-            {"room",     device->room()},
-            {"model",    device->model()},
-            {"protocol", device->protocol()}
+            {"id",       std::string(device->id())},
+            {"label",    std::string(device->label())},
+            {"room",     std::string(device->room())},
+            {"model",    std::string(device->model()->label)},
+            {"protocol", std::string(device->protocol())}
         };
 
         res.set_content(body.dump(), "application/json");

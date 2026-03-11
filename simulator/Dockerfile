@@ -75,3 +75,26 @@ RUN chmod +x /watch.sh
 COPY src/ /simulator/src/
 
 ENTRYPOINT ["/watch.sh"]
+
+# Test
+FROM alpine:3.21 AS test
+
+RUN apk add --no-cache \
+        build-base \
+        cmake \
+        ninja \
+        git \
+        ca-certificates \
+        mosquitto-dev \
+        openssl-dev
+
+WORKDIR /build
+COPY src/ .
+COPY tests/ ../tests/
+
+RUN cmake -B dist -G Ninja \
+        -DCMAKE_BUILD_TYPE=Debug \
+        -DBUILD_TESTS=ON \
+    && cmake --build dist --parallel
+
+CMD ["ctest", "--test-dir", "dist", "--output-on-failure"]
