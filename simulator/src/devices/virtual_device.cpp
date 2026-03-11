@@ -2,6 +2,12 @@
 
 #include <algorithm>
 
+#include <nlohmann/json.hpp>
+
+#include "../protocols/mqtt/mqtt_client.hpp"
+
+using json = nlohmann::json;
+
 VirtualDevice::VirtualDevice(std::string id,
                               std::string label,
                               std::string room,
@@ -24,4 +30,18 @@ std::string VirtualDevice::get_state(const std::string& key) const {
 
 void VirtualDevice::set_state(const std::string& key, const std::string& value) {
     states_[key] = value;
+}
+
+std::string VirtualDevice::state_topic() const {
+    return "home/" + model_->type + "/" + id_ + "/state";
+}
+
+void VirtualDevice::publish_state() const {
+    if (!mqtt_client_) return;
+
+    json payload = json::object();
+    for (const auto& [k, v] : states_)
+        payload[k] = v;
+
+    mqtt_client_->publish(state_topic(), payload.dump());
 }

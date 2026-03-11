@@ -55,6 +55,7 @@ set(DEVICE_SOURCES
 )
 
 set(PROTOCOL_SOURCES
+  protocols/mqtt/mqtt_client.cpp
   # protocols/mqtt/mqtt_adapter.cpp
   # protocols/rest/rest_adapter.cpp
   # protocols/ws/ws_adapter.cpp
@@ -68,6 +69,7 @@ set(SERVER_SOURCES
 add_library(sim_core STATIC
   ${CORE_SOURCES}
   ${DEVICE_SOURCES}
+  ${PROTOCOL_SOURCES}
   ${SERVER_SOURCES}
 )
 

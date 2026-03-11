@@ -7,6 +7,9 @@
 #include "event_engine/event.hpp"
 #include "virtual_device_model.hpp"
 
+// Forward declaration — avoids pulling in mosquitto.h from device headers.
+class IMQTTClient;
+
 // Abstract base class for all virtual smart devices.
 // Each device subtype (light, thermostat, …) must implement update_state().
 class VirtualDevice {
@@ -39,6 +42,18 @@ public:
     std::string get_state(const std::string& key) const;
     void        set_state(const std::string& key, const std::string& value);
 
+    // MQTT — non-owning pointer, set by DeviceEngine after construction.
+    // Only relevant when protocol() == "mqtt".
+    void set_mqtt_client(IMQTTClient* client) { mqtt_client_ = client; }
+    IMQTTClient* mqtt_client() const { return mqtt_client_; }
+
+    // Publishes the full current state as JSON to home/<type>/<id>/state.
+    // No-op if no MQTT client is set.
+    void publish_state() const;
+
+    // Returns the MQTT topic used by this device for state publication.
+    std::string state_topic() const;
+
     // Called by DeviceEngine when an event targets this device.
     virtual void update_state(const Event& event) = 0;
 
@@ -48,4 +63,7 @@ protected:
     std::string                        room_;
     const VirtualDeviceModel*          model_;
     std::map<std::string, std::string> states_;
+
+private:
+    IMQTTClient* mqtt_client_{ nullptr };
 };

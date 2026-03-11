@@ -1,0 +1,90 @@
+#include <gtest/gtest.h>
+
+#include "light/virtual_light.hpp"
+#include "mqtt/mqtt_client.hpp"
+
+// ── Mock ──────────────────────────────────────────────────────────────────────
+
+struct MockMQTTClient : IMQTTClient {
+    std::string last_topic;
+    std::string last_message;
+    int         publish_call_count{ 0 };
+
+    void connect(const std::string&, int) override {}
+    void disconnect() override {}
+    void publish(const std::string& topic, const std::string& message) override {
+        last_topic   = topic;
+        last_message = message;
+        ++publish_call_count;
+    }
+};
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+static VirtualDeviceModel make_mqtt_light() {
+    return {"ikea_bulb_v1", "IKEA Bulb v1", "light", "mqtt", {"on_off", "brightness"}};
+}
+
+// ── state_topic ───────────────────────────────────────────────────────────────
+
+TEST(VirtualDeviceMqttTest, StateTopic_Format) {
+    VirtualDeviceModel m = make_mqtt_light();
+    VirtualLight light("lamp_salon", "Lampe salon", "salon", &m);
+
+    EXPECT_EQ(light.state_topic(), "home/light/lamp_salon/state");
+}
+
+// ── publish_state ─────────────────────────────────────────────────────────────
+
+TEST(VirtualDeviceMqttTest, PublishState_IsNoopWithoutClient) {
+    VirtualDeviceModel m = make_mqtt_light();
+    VirtualLight light("lamp_salon", "Lampe salon", "salon", &m);
+    light.init_states();
+
+    // Must not crash when no client is set.
+    EXPECT_NO_THROW(light.publish_state());
+}
+
+TEST(VirtualDeviceMqttTest, PublishState_CallsPublishOnClient) {
+    VirtualDeviceModel m = make_mqtt_light();
+    VirtualLight light("lamp_salon", "Lampe salon", "salon", &m);
+    light.init_states();
+
+    MockMQTTClient mock;
+    light.set_mqtt_client(&mock);
+    light.publish_state();
+
+    EXPECT_EQ(mock.publish_call_count, 1);
+    EXPECT_EQ(mock.last_topic, "home/light/lamp_salon/state");
+}
+
+TEST(VirtualDeviceMqttTest, PublishState_PayloadContainsStates) {
+    VirtualDeviceModel m = make_mqtt_light();
+    VirtualLight light("lamp_salon", "Lampe salon", "salon", &m);
+    light.init_states();
+    light.set_state("on", "true");
+    light.set_state("brightness", "75");
+
+    MockMQTTClient mock;
+    light.set_mqtt_client(&mock);
+    light.publish_state();
+
+    // Payload must be valid JSON containing both keys.
+    EXPECT_NE(mock.last_message.find("\"on\""),         std::string::npos);
+    EXPECT_NE(mock.last_message.find("\"true\""),       std::string::npos);
+    EXPECT_NE(mock.last_message.find("\"brightness\""), std::string::npos);
+    EXPECT_NE(mock.last_message.find("\"75\""),         std::string::npos);
+}
+
+TEST(VirtualDeviceMqttTest, SetMqttClient_CanBeCleared) {
+    VirtualDeviceModel m = make_mqtt_light();
+    VirtualLight light("lamp_salon", "Lampe salon", "salon", &m);
+    light.init_states();
+
+    MockMQTTClient mock;
+    light.set_mqtt_client(&mock);
+    light.set_mqtt_client(nullptr);
+    light.publish_state();
+
+    EXPECT_EQ(mock.publish_call_count, 0);
+}
