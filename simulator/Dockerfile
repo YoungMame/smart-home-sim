@@ -72,4 +72,6 @@ EXPOSE 4000
 COPY watch.sh /watch.sh
 RUN chmod +x /watch.sh
 
+COPY src/ /simulator/src/
+
 ENTRYPOINT ["/watch.sh"]

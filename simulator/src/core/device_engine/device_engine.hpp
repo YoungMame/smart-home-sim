@@ -7,6 +7,14 @@
 #include "virtual_device.hpp"
 #include "event_engine/event.hpp"
 
+enum class DeviceType {
+    Light,
+    Thermostat,
+    Unknown,
+};
+
+DeviceType device_type_from_string(const std::string& type);
+
 // DeviceEngine — Singleton.
 // Owns all VirtualDevice instances and dispatches events to them.
 class DeviceEngine {

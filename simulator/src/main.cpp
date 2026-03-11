@@ -5,8 +5,10 @@
 
 #include "core/scheduler/event_scheduler.hpp"
 #include "core/device_engine/device_engine.hpp"
+#include "server/simulator_api.hpp"
 
 static void signal_handler(int /*sig*/) {
+    SimulatorApi::instance().stop();
     EventScheduler::instance().stop();
 }
 
@@ -27,7 +29,10 @@ int main() {
     std::cout << "[main] " << loaded << " virtual device(s) loaded.\n";
 
     // TODO: initialize AdapterManager (MQTT, REST, WS adapters)
-    // TODO: start Simulator API HTTP server on port CORE_PORT (logs, data, event triggers)
+
+    const char* env_port = std::getenv("CORE_PORT");
+    const int api_port = env_port ? std::stoi(env_port) : 4000;
+    SimulatorApi::instance().start(api_port);
 
     std::cout << "[main] Event scheduler running. Press Ctrl+C to stop.\n";
 

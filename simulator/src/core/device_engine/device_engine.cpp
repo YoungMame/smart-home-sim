@@ -11,6 +11,12 @@
 
 using json = nlohmann::json;
 
+DeviceType device_type_from_string(const std::string& type) {
+    if (type == "light")      return DeviceType::Light;
+    if (type == "thermostat") return DeviceType::Thermostat;
+    return DeviceType::Unknown;
+}
+
 DeviceEngine& DeviceEngine::instance() {
     static DeviceEngine inst;
     return inst;
@@ -58,17 +64,22 @@ int DeviceEngine::load_from_json(const std::string& models_path,
 
         std::unique_ptr<VirtualDevice> device;
 
-        if (type == "light") {
-            auto light = std::make_unique<VirtualLight>(id, label, room, model, protocol, caps);
-            light->init_states();
-            device = std::move(light);
-        } else if (type == "thermostat") {
-            auto thermo = std::make_unique<VirtualThermostat>(id, label, room, model, protocol, caps);
-            thermo->init_states();
-            device = std::move(thermo);
-        } else {
-            std::cerr << "[DeviceEngine] Unsupported type '" << type << "' — skipping " << id << "\n";
-            continue;
+        switch (device_type_from_string(type)) {
+            case DeviceType::Light: {
+                auto d = std::make_unique<VirtualLight>(id, label, room, model, protocol, caps);
+                d->init_states();
+                device = std::move(d);
+                break;
+            }
+            case DeviceType::Thermostat: {
+                auto d = std::make_unique<VirtualThermostat>(id, label, room, model, protocol, caps);
+                d->init_states();
+                device = std::move(d);
+                break;
+            }
+            case DeviceType::Unknown:
+                std::cerr << "[DeviceEngine] Unsupported type '" << type << "' — skipping " << id << "\n";
+                continue;
         }
 
         std::cout << "[DeviceEngine] Loaded " << type << ": " << id << " (" << label << ", " << room << ")\n";

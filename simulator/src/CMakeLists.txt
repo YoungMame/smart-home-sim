@@ -60,11 +60,16 @@ set(PROTOCOL_SOURCES
   # protocols/ws/ws_adapter.cpp
 )
 
+set(SERVER_SOURCES
+  server/simulator_api.cpp
+)
+
 add_executable(smart-home-sim
   main.cpp
   ${CORE_SOURCES}
   ${DEVICE_SOURCES}
   ${PROTOCOL_SOURCES}
+  ${SERVER_SOURCES}
 )
 
 # ── Include directories ───────────────────────────────────────────────────────
@@ -87,10 +92,7 @@ target_link_libraries(smart-home-sim PRIVATE
 # ── Compile options ───────────────────────────────────────────────────────────
 target_compile_options(smart-home-sim PRIVATE
   $<$<CONFIG:Release>:-O2>
-  $<$<CONFIG:Debug>:-g -fsanitize=address>
-)
-target_link_options(smart-home-sim PRIVATE
-  $<$<CONFIG:Debug>:-fsanitize=address>
+  $<$<CONFIG:Debug>:-g>
 )
 
 # ── Install ───────────────────────────────────────────────────────────────────
