@@ -8,12 +8,14 @@ services:
     ports:
       - "4000:4000"   # Simulator API — logs, data, event triggers
     environment:
-      - MQTT_BROKER_URL=mqtt://mqtt-broker:1883
+      - MQTT_BROKER_URL=${MQTT_BROKER_URL:-mqtt://mqtt-broker:1883}
     volumes:
       - simulator_dist:/dist
       - ./simulator/.deps:/dist/_deps
     depends_on:
-      - mqtt-broker
+      mqtt-broker:
+        condition: service_started
+        required: false
     restart: unless-stopped
     develop:
       watch:
@@ -24,6 +26,7 @@ services:
   mqtt-broker:
     image: eclipse-mosquitto:2.1.2-alpine
     container_name: smart-home-mqtt
+    profiles: ["broker"]
     ports:
       - "1883:1883"   # MQTT TCP
       - "9001:9001"   # MQTT over WebSocket
@@ -41,9 +44,11 @@ services:
       - "8080:8080"   # Per-device WebSocket
     environment:
       - NODE_ENV=development
-      - MQTT_BROKER_URL=mqtt://mqtt-broker:1883
+      - MQTT_BROKER_URL=${MQTT_BROKER_URL:-mqtt://mqtt-broker:1883}
     depends_on:
-      - mqtt-broker
+      mqtt-broker:
+        condition: service_started
+        required: false
     restart: unless-stopped
     develop:
       watch:

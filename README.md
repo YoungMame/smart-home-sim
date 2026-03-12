@@ -36,7 +36,7 @@ Docker: All externally-exposed services run in Docker containers and are accessi
 
 | Service | Image / Build | Exposed ports |
 |---|---|---|
-| MQTT Broker | `eclipse-mosquitto:2.0` | `1883` (TCP), `9001` (WS) |
+| MQTT Broker | `eclipse-mosquitto:2.1.2-alpine` | `1883` (TCP), `9001` (WS) |
 | Virtual Device API | `./api` | `3000` (HTTP REST) |
 | WebSocket Server | `./api` | `8080` (WS) |
 
@@ -48,16 +48,41 @@ React: The dashboard is built using React for a responsive and interactive user 
 
 ## Running with Docker
 
-Start all services with:
+The simulator ships with a bundled [Eclipse Mosquitto](https://mosquitto.org/)
+broker so the whole stack is self-contained. You can also point the services at
+an external broker that already exists in your infrastructure.
+
+### Option A — bundled MQTT broker (default)
+
+Start the broker together with the rest of the services using the `broker`
+profile:
+
+```bash
+docker compose --profile broker up -d
+```
+
+Stop everything:
+
+```bash
+docker compose --profile broker down
+```
+
+### Option B — external MQTT broker
+
+If you already have an MQTT broker (HiveMQ, EMQX, Mosquitto on another host,
+etc.) you can skip the bundled one. Copy `.env.example` to `.env` and set
+`MQTT_BROKER_URL` to your broker's address:
+
+```bash
+cp .env.example .env
+# edit .env and replace MQTT_BROKER_URL with your broker's address, for example:
+# MQTT_BROKER_URL=mqtt://my-broker.local:1883
+```
+
+Then start only the core and API services (no `broker` profile):
 
 ```bash
 docker compose up -d
-```
-
-Stop all services:
-
-```bash
-docker compose down
 ```
 
 ### Running unit tests
