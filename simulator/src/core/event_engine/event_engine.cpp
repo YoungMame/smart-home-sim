@@ -16,17 +16,22 @@ EventEngine& EventEngine::instance() {
     return inst;
 }
 
+namespace {
+bool is_builtin_event_type(const std::string& type) {
+    return type == "state_change" || type == "trigger";
+}
+}
+
 // Helpers
 
 bool EventEngine::is_known_device(const std::string& device_id) const {
-    VirtualDevice *device = DeviceEngine::instance().get_device(device_id);
-    return device != nullptr;
+    return DeviceEngine::instance().has_device(device_id);
 }
 
 // ── Public API ───────────────────────────────────────────────────────────────
 
 void EventEngine::process_event(const Event& event) {
-    if (!is_known_event_type(event.type)) {
+    if (!is_builtin_event_type(event.type) && !is_known_event_type(event.type)) {
         std::cerr << "[EventEngine] Unknown event type: '" << event.type << "'\n";
         return;
     }

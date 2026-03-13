@@ -31,6 +31,8 @@ WebSocket library: Used for real-time communication between the simulator and th
 ### Storage
 SQLite: Used for storing device configurations, user data, and simulation state persistently.
 
+At startup, the simulator initializes the SQLite schema and applies a seed script (`simulator/src/data/seed.sql`) to ensure default models and devices exist.
+
 ### Infrastructure
 Docker: All externally-exposed services run in Docker containers and are accessible to users and external clients.
 
@@ -58,8 +60,10 @@ Start the broker together with the rest of the services using the `broker`
 profile:
 
 ```bash
-docker compose --profile broker up -d
+docker compose --profile broker up
 ```
+
+Le service `core` ouvre maintenant un CLI interactif dans le terminal (`smart-home>`).
 
 Stop everything:
 
@@ -82,7 +86,15 @@ cp .env.example .env
 Then start only the core and API services (no `broker` profile):
 
 ```bash
-docker compose up -d
+docker compose up
+```
+
+Optional DB configuration:
+
+```bash
+# default values used by the core container
+SMART_HOME_DB_PATH=/data/simulator.db
+SMART_HOME_DB_SEED=/data/seed.sql
 ```
 
 ### Running unit tests

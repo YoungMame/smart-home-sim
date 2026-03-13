@@ -1,22 +1,31 @@
 #include <gtest/gtest.h>
+#include <filesystem>
+
 #include "device_engine/device_engine.hpp"
 
 // DeviceEngine is a singleton — tests share the same instance.
-// Each fixture resets it by loading fresh JSON paths.
+// Each test resets it by reloading from SQLite seed.
 
-static const std::string MODELS_PATH  = "/build/data/device_models.json";
-static const std::string DEVICES_PATH = "/build/data/devices.json";
+static const std::string DB_PATH   = "/tmp/smart_home_sim_test.db";
+static const std::string SEED_PATH = "/build/data/seed.sql";
 
-// ── load_from_json ────────────────────────────────────────────────────────────
+static void reset_db_file() {
+    std::error_code ec;
+    std::filesystem::remove(DB_PATH, ec);
+}
 
-TEST(DeviceEngineTest, LoadFromJson_ReturnsCorrectCount) {
-    // devices.json contains 2 devices (lamp_salon + lamp_chambre).
-    int count = DeviceEngine::instance().load_from_json(MODELS_PATH, DEVICES_PATH);
+// ── load_from_db ─────────────────────────────────────────────────────────────
+
+TEST(DeviceEngineTest, LoadFromDb_ReturnsCorrectCount) {
+    reset_db_file();
+    // seed.sql inserts 2 devices (lamp_salon + lamp_chambre).
+    int count = DeviceEngine::instance().load_from_db(DB_PATH, SEED_PATH);
     EXPECT_EQ(count, 2);
 }
 
-TEST(DeviceEngineTest, LoadFromJson_DevicesAreRetrievable) {
-    DeviceEngine::instance().load_from_json(MODELS_PATH, DEVICES_PATH);
+TEST(DeviceEngineTest, LoadFromDb_DevicesAreRetrievable) {
+    reset_db_file();
+    DeviceEngine::instance().load_from_db(DB_PATH, SEED_PATH);
 
     VirtualDevice* lamp = DeviceEngine::instance().get_device("lamp_salon");
     ASSERT_NE(lamp, nullptr);
@@ -29,13 +38,15 @@ TEST(DeviceEngineTest, LoadFromJson_DevicesAreRetrievable) {
 // ── get_device ────────────────────────────────────────────────────────────────
 
 TEST(DeviceEngineTest, GetDevice_ReturnsNullptrForUnknownId) {
-    DeviceEngine::instance().load_from_json(MODELS_PATH, DEVICES_PATH);
+    reset_db_file();
+    DeviceEngine::instance().load_from_db(DB_PATH, SEED_PATH);
 
     EXPECT_EQ(DeviceEngine::instance().get_device("does_not_exist"), nullptr);
 }
 
 TEST(DeviceEngineTest, GetDevice_LampChambreHasColorCapability) {
-    DeviceEngine::instance().load_from_json(MODELS_PATH, DEVICES_PATH);
+    reset_db_file();
+    DeviceEngine::instance().load_from_db(DB_PATH, SEED_PATH);
 
     VirtualDevice* lamp = DeviceEngine::instance().get_device("lamp_chambre");
     ASSERT_NE(lamp, nullptr);
@@ -45,7 +56,8 @@ TEST(DeviceEngineTest, GetDevice_LampChambreHasColorCapability) {
 // ── devices() ────────────────────────────────────────────────────────────────
 
 TEST(DeviceEngineTest, DevicesMap_ContainsAllLoadedDevices) {
-    DeviceEngine::instance().load_from_json(MODELS_PATH, DEVICES_PATH);
+    reset_db_file();
+    DeviceEngine::instance().load_from_db(DB_PATH, SEED_PATH);
 
     const auto& devs = DeviceEngine::instance().devices();
     EXPECT_GE(devs.size(), 2u);

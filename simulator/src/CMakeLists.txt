@@ -4,6 +4,7 @@ project(smart_home_sim VERSION 1.0.0 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # ── Build type default ────────────────────────────────────────────────────────
 if(NOT CMAKE_BUILD_TYPE)
@@ -13,7 +14,7 @@ endif()
 # ── Dependencies (fetched at configure time) ──────────────────────────────────
 include(FetchContent)
 
-# nlohmann/json — JSON parsing for device_models.json / devices.json
+# nlohmann/json — JSON parsing for event payloads and API serialization
 FetchContent_Declare(
   nlohmann_json
   GIT_REPOSITORY https://github.com/nlohmann/json.git
@@ -29,10 +30,19 @@ FetchContent_Declare(
   GIT_SHALLOW    TRUE
 )
 
-FetchContent_MakeAvailable(nlohmann_json httplib)
+# argparse — command-line argument parsing
+FetchContent_Declare(
+  argparse
+  GIT_REPOSITORY https://github.com/p-ranav/argparse.git
+  GIT_TAG        v3.2
+  GIT_SHALLOW    TRUE
+)
+
+FetchContent_MakeAvailable(nlohmann_json httplib argparse)
 
 # ── System libraries ──────────────────────────────────────────────────────────
 find_package(Threads REQUIRED)
+find_package(SQLite3 REQUIRED)
 
 # Eclipse Mosquitto C client (apt: libmosquitto-dev)
 find_library(MOSQUITTO_LIB mosquitto REQUIRED)
@@ -45,6 +55,7 @@ set(CORE_SOURCES
   core/scheduler/event_scheduler.cpp
   core/device_engine/device_engine.cpp
   core/event_engine/event_engine.cpp
+  core/db/sqlite_store.cpp
 )
 
 set(DEVICE_SOURCES
@@ -83,9 +94,11 @@ target_include_directories(sim_core PUBLIC
 
 target_link_libraries(sim_core PUBLIC
   Threads::Threads
+  SQLite::SQLite3
   ${MOSQUITTO_LIB}
   nlohmann_json::nlohmann_json
   httplib::httplib
+  argparse::argparse
 )
 
 target_compile_options(sim_core PRIVATE
@@ -94,7 +107,10 @@ target_compile_options(sim_core PRIVATE
 )
 
 # ── Main executable ───────────────────────────────────────────────────────────
-add_executable(smart-home-sim main.cpp)
+add_executable(smart-home-sim
+  main.cpp
+  cli/cli.cpp
+)
 target_link_libraries(smart-home-sim PRIVATE sim_core)
 
 # ── Compile options ───────────────────────────────────────────────────────────

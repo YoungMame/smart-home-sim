@@ -40,6 +40,7 @@ public:
 
     // Returns empty string if key is absent.
     std::string get_state(const std::string& key) const;
+    const std::map<std::string, std::string>& states() const { return states_; }
     void        set_state(const std::string& key, const std::string& value);
 
     // MQTT — non-owning pointer, set by DeviceEngine after construction.
@@ -58,6 +59,8 @@ public:
     virtual void update_state(const Event& event) = 0;
 
 protected:
+    void apply_state_payload(const std::string& payload);
+
     std::string                        id_;
     std::string                        label_;
     std::string                        room_;

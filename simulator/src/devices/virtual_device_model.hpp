@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 
-// Describes the static characteristics of a device model as defined in device_models.json.
+// Describes the static characteristics of a device model as stored in SQLite.
 // Owned by DeviceEngine; VirtualDevice holds a non-owning const pointer.
 struct VirtualDeviceModel {
     std::string              id;

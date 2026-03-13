@@ -44,10 +44,10 @@ void SimulatorApi::register_routes() {
     });
 
     svr_->Get("/devices", [](const Request&, Response& res) {
-        const auto& devices = DeviceEngine::instance().devices();
+        const auto devices = DeviceEngine::instance().snapshot_devices();
 
         json body = json::array();
-        for (const auto& [id, device] : devices) {
+        for (const auto& device : devices) {
             body.push_back({
                 {"id",      std::string(device->id())},
                 {"label",    std::string(device->label())},
@@ -63,7 +63,7 @@ void SimulatorApi::register_routes() {
     svr_->Get("/devices/:id", [](const Request& req, Response& res) {
         auto id_it = req.path_params.find("id");
         const std::string id = id_it != req.path_params.end() ? id_it->second : "";
-        VirtualDevice* device = DeviceEngine::instance().get_device(id);
+        std::shared_ptr<VirtualDevice> device = DeviceEngine::instance().get_device_shared(id);
 
         if (!device) {
             res.status = 404;

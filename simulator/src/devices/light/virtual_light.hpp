@@ -7,8 +7,8 @@ public:
     // Inherit the VirtualDevice constructor directly.
     using VirtualDevice::VirtualDevice;
 
-    // Set initial states according to capabilities declared in device_models.json.
-    // Must be called right after construction (done by DeviceEngine::load_from_json).
+    // Set initial states according to capabilities declared in the model catalog.
+    // Must be called right after construction (done by DeviceEngine).
     void init_states();
 
     void update_state(const Event& event) override;

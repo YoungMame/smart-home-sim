@@ -7,6 +7,7 @@ RUN apk add --no-cache \
         ninja \
         git \
         ca-certificates \
+        sqlite-dev \
         mosquitto-dev \
         openssl-dev
 
@@ -30,6 +31,7 @@ FROM alpine:3.21 AS runtime
 
 # Only the runtime shared libraries (no dev headers).
 RUN apk add --no-cache \
+        sqlite-libs \
         mosquitto-libs \
         libssl3
 
@@ -42,8 +44,10 @@ EXPOSE 4000
 
 ENV MQTT_BROKER_URL=mqtt://mqtt-broker:1883
 ENV CORE_PORT=4000
-# Path to the device JSON files inside the container (copied from src/data/ at build time).
+# Paths to SQLite DB + SQL seed file inside the container.
 ENV SMART_HOME_DATA_DIR=/data
+ENV SMART_HOME_DB_PATH=/data/simulator.db
+ENV SMART_HOME_DB_SEED=/data/seed.sql
 
 ENTRYPOINT ["smart-home-sim"]
 
@@ -58,6 +62,7 @@ RUN apk add --no-cache \
         ninja \
         git \
         ca-certificates \
+        sqlite-dev \
         mosquitto-dev \
         openssl-dev
 
@@ -66,6 +71,8 @@ WORKDIR /simulator/src
 ENV MQTT_BROKER_URL=mqtt://mqtt-broker:1883
 ENV CORE_PORT=4000
 ENV SMART_HOME_DATA_DIR=/simulator/src/data
+ENV SMART_HOME_DB_PATH=/simulator/src/data/simulator.db
+ENV SMART_HOME_DB_SEED=/simulator/src/data/seed.sql
 
 EXPOSE 4000
 
@@ -85,6 +92,7 @@ RUN apk add --no-cache \
         ninja \
         git \
         ca-certificates \
+        sqlite-dev \
         mosquitto-dev \
         openssl-dev
 

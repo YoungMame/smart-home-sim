@@ -1,5 +1,9 @@
 #include "light/virtual_light.hpp"
 
+#include <iostream>
+
+#include <nlohmann/json.hpp>
+
 void VirtualLight::init_states() {
     set_state("on", "false");
     if (has_capability("brightness"))
@@ -9,7 +13,12 @@ void VirtualLight::init_states() {
 }
 
 void VirtualLight::update_state(const Event& event) {
-    // TODO: parse event.payload (JSON) to extract key/value pairs and call set_state.
-    // Expected payload example: {"on": "true"} or {"brightness": "75"}
-    (void)event;
+    try {
+        apply_state_payload(event.payload);
+    } catch (const nlohmann::json::exception& ex) {
+        std::cerr << "[VirtualLight] Invalid payload for " << id() << ": " << ex.what() << "\n";
+        return;
+    }
+
+    publish_state();
 }

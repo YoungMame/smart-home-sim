@@ -1,0 +1,14 @@
+{
+  "cmake.sourceDirectory": "${workspaceFolder}/simulator/src",
+  "cmake.buildDirectory": "${workspaceFolder}/simulator/dist",
+  "cmake.configureOnOpen": true,
+  "cmake.configureSettings": {
+    "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+  },
+  "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
+  "C_Cpp.default.compileCommands": "${workspaceFolder}/simulator/dist/compile_commands.json",
+  "C_Cpp.default.includePath": [
+    "${workspaceFolder}/simulator/src/**",
+    "${workspaceFolder}/simulator/.deps/**"
+  ]
+}

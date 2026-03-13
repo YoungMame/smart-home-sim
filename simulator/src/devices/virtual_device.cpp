@@ -32,6 +32,26 @@ void VirtualDevice::set_state(const std::string& key, const std::string& value) 
     states_[key] = value;
 }
 
+void VirtualDevice::apply_state_payload(const std::string& payload) {
+    if (payload.empty()) {
+        return;
+    }
+
+    const json body = json::parse(payload);
+    if (!body.is_object()) {
+        throw json::type_error::create(302, "state payload must be a JSON object", &body);
+    }
+
+    for (const auto& [key, value] : body.items()) {
+        if (value.is_string()) {
+            set_state(key, value.get<std::string>());
+            continue;
+        }
+
+        set_state(key, value.dump());
+    }
+}
+
 std::string VirtualDevice::state_topic() const {
     return "home/" + model_->type + "/" + id_ + "/state";
 }

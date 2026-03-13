@@ -2,15 +2,20 @@
 #include <cstdlib>
 #include <iostream>
 #include <string>
+#include <thread>
 
 #include "core/scheduler/event_scheduler.hpp"
 #include "core/device_engine/device_engine.hpp"
 #include "server/simulator_api.hpp"
+#include "cli/cli.hpp"
 
 static void signal_handler(int /*sig*/) {
     SimulatorApi::instance().stop();
     EventScheduler::instance().stop();
 }
+
+namespace {
+} // namespace
 
 int main() {
     std::signal(SIGINT,  signal_handler);
@@ -22,10 +27,13 @@ int main() {
     const char* env_data_dir = std::getenv("SMART_HOME_DATA_DIR");
     const std::string data_dir = env_data_dir ? env_data_dir : "data";
 
-    const int loaded = DeviceEngine::instance().load_from_json(
-        data_dir + "/device_models.json",
-        data_dir + "/devices.json"
-    );
+    const char* env_db_path = std::getenv("SMART_HOME_DB_PATH");
+    const std::string db_path = env_db_path ? env_db_path : (data_dir + "/simulator.db");
+
+    const char* env_seed_path = std::getenv("SMART_HOME_DB_SEED");
+    const std::string seed_path = env_seed_path ? env_seed_path : (data_dir + "/seed.sql");
+
+    const int loaded = DeviceEngine::instance().load_from_db(db_path, seed_path);
     std::cout << "[main] " << loaded << " virtual device(s) loaded.\n";
 
     // TODO: initialize AdapterManager (MQTT, REST, WS adapters)
@@ -34,9 +42,17 @@ int main() {
     const int api_port = env_port ? std::stoi(env_port) : 4000;
     SimulatorApi::instance().start(api_port);
 
-    std::cout << "[main] Event scheduler running. Press Ctrl+C to stop.\n";
+    std::thread scheduler_thread([] {
+        EventScheduler::instance().run();
+    });
 
-    EventScheduler::instance().run(); // blocking — returns when stop() is called
+    CLI::run_interactive_loop();
+
+    SimulatorApi::instance().stop();
+    EventScheduler::instance().stop();
+    if (scheduler_thread.joinable()) {
+        scheduler_thread.join();
+    }
 
     std::cout << "[main] Simulator shut down cleanly.\n";
     return 0;

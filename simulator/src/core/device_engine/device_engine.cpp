@@ -1,19 +1,43 @@
 #include "device_engine/device_engine.hpp"
 
-#include <fstream>
 #include <iostream>
 #include <stdexcept>
+#include <utility>
 
-#include <nlohmann/json.hpp>
-
+#include "db/sqlite_store.hpp"
 #include "light/virtual_light.hpp"
 #include "thermostat/virtual_thermostat.hpp"
 
-using json = nlohmann::json;
+std::shared_ptr<VirtualDevice> DeviceEngine::create_device(const std::string& id,
+                                                           const std::string& label,
+                                                           const std::string& room,
+                                                           const VirtualDeviceModel& model) const {
+    std::shared_ptr<VirtualDevice> device;
+
+    switch (device_type_from_string(model.type)) {
+        case DeviceType::Light: {
+            auto light = std::make_shared<VirtualLight>(id, label, room, &model);
+            light->init_states();
+            device = std::move(light);
+            break;
+        }
+        case DeviceType::Thermostat: {
+            auto thermostat = std::make_shared<VirtualThermostat>(id, label, room, &model);
+            thermostat->init_states();
+            device = std::move(thermostat);
+            break;
+        }
+        case DeviceType::Unknown:
+            return nullptr;
+    }
+
+    return device;
+}
 
 void DeviceEngine::log_devices() const {
-    for (const auto& pair : devices_) {
-        const VirtualDevice* device = pair.second.get();
+    const auto devices = snapshot_devices();
+    for (const auto& device_ptr : devices) {
+        const VirtualDevice* device = device_ptr.get();
         std::cout << "[DeviceEngine] " << device->type() << ": " << device->id() << " (" << device->label() << ", " << device->room() << ")\n";
     }
 }
@@ -29,72 +53,39 @@ DeviceEngine& DeviceEngine::instance() {
     return inst;
 }
 
-int DeviceEngine::load_from_json(const std::string& models_path,
-                                  const std::string& devices_path) {
-    json models;
-    {
-        std::ifstream f(models_path);
-        if (!f.is_open())
-            throw std::runtime_error("[DeviceEngine] Cannot open: " + models_path);
-        f >> models;
-    }
+int DeviceEngine::load_from_db(const std::string& db_path, const std::string& seed_path) {
+    SqliteStore::initialize(db_path, seed_path);
 
-    json devices;
-    {
-        std::ifstream f(devices_path);
-        if (!f.is_open())
-            throw std::runtime_error("[DeviceEngine] Cannot open: " + devices_path);
-        f >> devices;
-    }
+    const auto models = SqliteStore::load_models(db_path);
+    const auto device_rows = SqliteStore::load_devices(db_path);
 
     int count = 0;
+    std::lock_guard<std::mutex> lock(mutex_);
+    db_path_ = db_path;
 
-    // Models must be loaded before devices since devices reference them by id.
-    for (auto& [model_id, m] : models.items()) {
-        std::string protocol = m.at("protocol");
-        while (!protocol.empty() && std::isspace(static_cast<unsigned char>(protocol.back())))
-            protocol.pop_back();
+    models_.clear();
+    devices_.clear();
 
-        VirtualDeviceModel vm;
-        vm.id           = model_id;
-        vm.label        = m.value("label", model_id);
-        vm.type         = m.at("type");
-        vm.protocol     = std::move(protocol);
-        vm.capabilities = m.at("capabilities").get<std::vector<std::string>>();
-        models_.emplace(model_id, std::move(vm));
+    for (const auto& model : models) {
+        models_.emplace(model.id, model);
     }
 
-    for (const auto& d : devices) {
-        const std::string id       = d.at("id");
-        const std::string label    = d.at("label");
-        const std::string room     = d.at("room");
-        const std::string model_id = d.at("model");
+    for (const auto& row : device_rows) {
+        const std::string& id = row.id;
+        const std::string& label = row.label;
+        const std::string& room = row.room;
+        const std::string& model_id = row.model_id;
 
         if (models_.find(model_id) == models_.end()) {
             std::cerr << "[DeviceEngine] Unknown model '" << model_id << "' — skipping " << id << "\n";
             continue;
         }
 
-        const VirtualDeviceModel* vm = &models_.at(model_id);
-
-        std::unique_ptr<VirtualDevice> device;
-
-        switch (device_type_from_string(vm->type)) {
-            case DeviceType::Light: {
-                auto d = std::make_unique<VirtualLight>(id, label, room, vm);
-                d->init_states();
-                device = std::move(d);
-                break;
-            }
-            case DeviceType::Thermostat: {
-                auto d = std::make_unique<VirtualThermostat>(id, label, room, vm);
-                d->init_states();
-                device = std::move(d);
-                break;
-            }
-            case DeviceType::Unknown:
-                std::cerr << "[DeviceEngine] Unsupported type '" << vm->type << "' — skipping " << id << "\n";
-                continue;
+        const VirtualDeviceModel& vm = models_.at(model_id);
+        std::shared_ptr<VirtualDevice> device = create_device(id, label, room, vm);
+        if (!device) {
+            std::cerr << "[DeviceEngine] Unsupported type '" << vm.type << "' — skipping " << id << "\n";
+            continue;
         }
 
         std::cout << "[DeviceEngine] Loaded " << device->type() << ": " << device->id() << " (" << label << ", " << room << ")\n";
@@ -106,17 +97,99 @@ int DeviceEngine::load_from_json(const std::string& models_path,
 }
 
 VirtualDevice* DeviceEngine::get_device(const std::string& device_id) {
+    std::lock_guard<std::mutex> lock(mutex_);
     auto it = devices_.find(device_id);
     return it != devices_.end() ? it->second.get() : nullptr;
 }
 
-const std::unordered_map<std::string, std::unique_ptr<VirtualDevice>>&
+std::shared_ptr<VirtualDevice> DeviceEngine::get_device_shared(const std::string& device_id) {
+    std::lock_guard<std::mutex> lock(mutex_);
+    auto it = devices_.find(device_id);
+    return it != devices_.end() ? it->second : nullptr;
+}
+
+bool DeviceEngine::has_device(const std::string& device_id) const {
+    std::lock_guard<std::mutex> lock(mutex_);
+    return devices_.find(device_id) != devices_.end();
+}
+
+bool DeviceEngine::add_device(const std::string& id,
+                              const std::string& label,
+                              const std::string& room,
+                              const std::string& model_id) {
+    std::lock_guard<std::mutex> lock(mutex_);
+
+    if (db_path_.empty()) {
+        std::cerr << "[DeviceEngine] DB is not initialized\n";
+        return false;
+    }
+
+    if (devices_.find(id) != devices_.end()) {
+        std::cerr << "[DeviceEngine] Device already exists: " << id << "\n";
+        return false;
+    }
+
+    auto model_it = models_.find(model_id);
+    if (model_it == models_.end()) {
+        std::cerr << "[DeviceEngine] Unknown model: " << model_id << "\n";
+        return false;
+    }
+
+    std::shared_ptr<VirtualDevice> device = create_device(id, label, room, model_it->second);
+    if (!device) {
+        std::cerr << "[DeviceEngine] Unsupported type '" << model_it->second.type << "'\n";
+        return false;
+    }
+
+    if (!SqliteStore::insert_device(db_path_, id, label, room, model_id)) {
+        std::cerr << "[DeviceEngine] Failed to persist device in DB: " << id << "\n";
+        return false;
+    }
+
+    devices_.emplace(id, std::move(device));
+    return true;
+}
+
+bool DeviceEngine::remove_device(const std::string& device_id) {
+    std::lock_guard<std::mutex> lock(mutex_);
+
+    if (db_path_.empty()) {
+        std::cerr << "[DeviceEngine] DB is not initialized\n";
+        return false;
+    }
+
+    if (!SqliteStore::delete_device(db_path_, device_id)) {
+        return false;
+    }
+
+    return devices_.erase(device_id) > 0;
+}
+
+const std::unordered_map<std::string, std::shared_ptr<VirtualDevice>>&
 DeviceEngine::devices() const {
     return devices_;
 }
 
+std::vector<std::shared_ptr<VirtualDevice>> DeviceEngine::snapshot_devices() const {
+    std::lock_guard<std::mutex> lock(mutex_);
+    std::vector<std::shared_ptr<VirtualDevice>> snapshot;
+    snapshot.reserve(devices_.size());
+    for (const auto& [id, device] : devices_)
+        snapshot.push_back(device);
+    return snapshot;
+}
+
+std::vector<VirtualDeviceModel> DeviceEngine::snapshot_models() const {
+    std::lock_guard<std::mutex> lock(mutex_);
+    std::vector<VirtualDeviceModel> snapshot;
+    snapshot.reserve(models_.size());
+    for (const auto& [id, model] : models_)
+        snapshot.push_back(model);
+    return snapshot;
+}
+
 void DeviceEngine::update_device_state(const std::string& device_id, const Event& event) {
-    VirtualDevice* device = get_device(device_id);
+    std::shared_ptr<VirtualDevice> device = get_device_shared(device_id);
     if (!device) {
         std::cerr << "[DeviceEngine] Device not found: " << device_id << "\n";
         return;
