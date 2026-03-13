@@ -30,6 +30,10 @@ FetchContent_Declare(
   GIT_SHALLOW    TRUE
 )
 
+# Disable install/package logic for fetched dependencies.
+set(HTTPLIB_INSTALL OFF CACHE BOOL "Disable cpp-httplib install targets" FORCE)
+set(HTTPLIB_TEST OFF CACHE BOOL "Disable cpp-httplib tests" FORCE)
+
 # argparse — command-line argument parsing
 FetchContent_Declare(
   argparse

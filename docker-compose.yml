@@ -11,7 +11,6 @@ services:
       - MQTT_BROKER_URL=${MQTT_BROKER_URL:-mqtt://mqtt-broker:1883}
     volumes:
       - ./simulator/dist:/dist
-      - ./simulator/.deps:/dist/_deps
     depends_on:
       mqtt-broker:
         condition: service_started

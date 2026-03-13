@@ -48,6 +48,18 @@ Express.js: The Node.js API container acts as a **protocol bridge** between HTTP
 ### Dashboard
 React: The dashboard is built using React for a responsive and interactive user interface.
 
+## Dev environment setup
+(Optional) -- Use VS Code dev containers for a seamless development experience with all dependencies pre-configured:
+1. Install dev container extension in VS Code
+2. Open the project in VS Code and reopen it in the dev container: `Ctrl+Shift+P` → `Remote-Containers: Reopen in Container`
+3. When changes are 
+
+
+3. The dev container will automatically build and start the necessary services. You can also start them manually using Docker Compose (see below).
+4. Start the core service to access the CLI: `docker compose --profile broker up core`
+
+
+
 ## Running with Docker
 
 The simulator ships with a bundled [Eclipse Mosquitto](https://mosquitto.org/)
