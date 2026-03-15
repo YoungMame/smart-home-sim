@@ -1,3 +1,4 @@
 simulator/dist/
 simulator/.deps/
 .env
+.vscode
