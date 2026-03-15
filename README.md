@@ -11,7 +11,7 @@
 
 Smart Home Simulator is a software application that simulates a smart home environment. It allows users to create and manage virtual smart devices, such as lights, thermostats, and security cameras, and control them through a user-friendly interface. The simulator provides a realistic experience of how smart home technology works and can be used for testing and educational purposes.
 
-![alt text](https://github.com/YoungMame/smart-home-sim/blob/main/media/functionning.png?raw=true)
+![alt text](https://github.com/YoungMame/smart-home-sim/blob/main/media/demo.png?raw=true)
 
 ## System Architecture
 The system architecture is defined in ARCHITECTURE.md, which outlines the modular design of the simulator, including the API layer, core simulation engine, event scheduler, device engine, adapter manager, and supported communication protocols.
