@@ -10,10 +10,6 @@ namespace {
 
 } // namespace
 
-AdapterProtocol RestClient::protocol() const {
-    return AdapterProtocol::Rest;
-}
-
 void RestClient::connect(const std::string& endpoint) {
     std::scoped_lock lock(mutex_);
     endpoint_ = endpoint;
@@ -30,21 +26,23 @@ bool RestClient::is_connected() const {
     return connected_;
 }
 
-void RestClient::send(const std::string& route, const std::string& payload) {
+SimulatedMessage RestClient::get(const std::string& route, const std::string& payload) {
     std::scoped_lock lock(mutex_);
     if (!connected_) {
-        throw_not_connected(protocol());
+        throw_not_connected(AdapterProtocol::Rest);
     }
 
-    messages_.push_back({protocol(), route, payload});
+    SimulatedMessage request{AdapterProtocol::Rest, route, payload};
+    requests_.push_back(request);
+    return request;
 }
 
-std::vector<SimulatedMessage> RestClient::messages() const {
+std::vector<SimulatedMessage> RestClient::requests() const {
     std::scoped_lock lock(mutex_);
-    return messages_;
+    return requests_;
 }
 
-void RestClient::clear_messages() {
+void RestClient::clear_requests() {
     std::scoped_lock lock(mutex_);
-    messages_.clear();
+    requests_.clear();
 }

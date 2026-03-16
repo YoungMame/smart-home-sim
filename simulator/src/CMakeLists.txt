@@ -74,7 +74,10 @@ set(DEVICE_SOURCES
 set(PROTOCOL_SOURCES
   protocols/mqtt/mqtt_client.cpp
   protocols/rest/rest_client.cpp
+  protocols/rest/rest_server.cpp
+  protocols/rest/rest_servers_manager.cpp
   protocols/ws/ws_client.cpp
+  protocols/ws/ws_servers_manager.cpp
   # protocols/mqtt/mqtt_adapter.cpp
 )
 

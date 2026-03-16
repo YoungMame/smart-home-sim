@@ -8,6 +8,9 @@
 
 class WsClient : public ProtocolClient {
 public:
+    explicit WsClient(std::string device_id = "");
+    ~WsClient() override;
+
     AdapterProtocol protocol() const override;
 
     void connect(const std::string& endpoint) override;

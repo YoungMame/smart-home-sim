@@ -6,21 +6,20 @@
 
 #include "core/adapter_manager/protocol_client.hpp"
 
-class RestClient : public ProtocolClient {
+class RestClient {
 public:
-    AdapterProtocol protocol() const override;
+    void connect(const std::string& endpoint);
+    void disconnect();
+    bool is_connected() const;
 
-    void connect(const std::string& endpoint) override;
-    void disconnect() override;
-    bool is_connected() const override;
+    SimulatedMessage get(const std::string& route, const std::string& payload = "");
 
-    void send(const std::string& route, const std::string& payload) override;
-
-    std::vector<SimulatedMessage> messages() const override;
-    void clear_messages() override;
+    std::vector<SimulatedMessage> requests() const;
+    void clear_requests();
 
 private:
     mutable std::mutex            mutex_;
     std::string                   endpoint_;
-    std::vector<SimulatedMessage> messages_;
+    bool                          connected_{false};
+    std::vector<SimulatedMessage> requests_;
 };

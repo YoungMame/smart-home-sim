@@ -61,7 +61,7 @@ TEST(VirtualDeviceMqttTest, PublishState_CallsPublishOnClient) {
     light.init_states();
 
     MockMQTTClient mock;
-    light.set_mqtt_client(&mock);
+    light.set_protocol_client(&mock);
     light.publish_state();
 
     EXPECT_EQ(mock.publish_call_count, 1);
@@ -76,7 +76,7 @@ TEST(VirtualDeviceMqttTest, PublishState_PayloadContainsStates) {
     light.set_state("brightness", "75");
 
     MockMQTTClient mock;
-    light.set_mqtt_client(&mock);
+    light.set_protocol_client(&mock);
     light.publish_state();
 
     // Payload must be valid JSON containing both keys.
@@ -92,8 +92,8 @@ TEST(VirtualDeviceMqttTest, SetMqttClient_CanBeCleared) {
     light.init_states();
 
     MockMQTTClient mock;
-    light.set_mqtt_client(&mock);
-    light.set_mqtt_client(nullptr);
+    light.set_protocol_client(&mock);
+    light.set_protocol_client(nullptr);
     light.publish_state();
 
     EXPECT_EQ(mock.publish_call_count, 0);

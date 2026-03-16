@@ -4,7 +4,7 @@
 
 #include <nlohmann/json.hpp>
 
-#include "../protocols/mqtt/mqtt_client.hpp"
+#include "core/adapter_manager/adapter_manager.hpp"
 
 using json = nlohmann::json;
 
@@ -17,6 +17,18 @@ VirtualDevice::VirtualDevice(std::string id,
     , room_(std::move(room))
     , model_(model)
 {}
+
+VirtualDevice::~VirtualDevice() {
+    if (protocol_client_) {
+        protocol_client_->disconnect();
+    }
+
+    try {
+        AdapterManager::instance().unregister_device(id_);
+    } catch (...) {
+        // Destructors must not throw.
+    }
+};
 
 bool VirtualDevice::has_capability(const std::string& cap) const {
     const auto& caps = model_->capabilities;
@@ -57,11 +69,11 @@ std::string VirtualDevice::state_topic() const {
 }
 
 void VirtualDevice::publish_state() const {
-    if (!mqtt_client_) return;
+    if (!protocol_client_) return;
 
     json payload = json::object();
     for (const auto& [k, v] : states_)
         payload[k] = v;
 
-    mqtt_client_->send(state_topic(), payload.dump());
+    protocol_client_->send(state_topic(), payload.dump());
 }

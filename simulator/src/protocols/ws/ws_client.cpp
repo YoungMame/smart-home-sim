@@ -1,6 +1,9 @@
 #include "ws_client.hpp"
 
 #include <stdexcept>
+#include <utility>
+
+#include "core/adapter_manager/adapter_manager.hpp"
 
 namespace {
 
@@ -9,6 +12,25 @@ namespace {
 }
 
 } // namespace
+
+WsClient::WsClient(std::string device_id)
+    : ProtocolClient(std::move(device_id)) {}
+
+WsClient::~WsClient() {
+    try {
+        disconnect();
+    } catch (...) {
+    }
+
+    try {
+        if (!device_id().empty()) {
+            AdapterManager::instance().unregister_device(device_id());
+        } else {
+            AdapterManager::instance().unregister_client(AdapterProtocol::Ws);
+        }
+    } catch (...) {
+    }
+}
 
 AdapterProtocol WsClient::protocol() const {
     return AdapterProtocol::Ws;

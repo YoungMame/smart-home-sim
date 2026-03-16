@@ -4,13 +4,26 @@
 #include <stdexcept>
 #include <string>
 
+#include "core/adapter_manager/adapter_manager.hpp"
+
 MQTTClient::MQTTClient() {
+    set_device_id("mqtt-global");
     mosq_ = mosquitto_new(nullptr, true, nullptr);
     if (!mosq_)
         throw std::runtime_error("Failed to create MQTT client");
 }
 
 MQTTClient::~MQTTClient() {
+    try {
+        disconnect();
+    } catch (...) {
+    }
+
+    try {
+        AdapterManager::instance().unregister_client(AdapterProtocol::Mqtt);
+    } catch (...) {
+    }
+
     if (mosq_)
         mosquitto_destroy(mosq_);
 }
@@ -42,7 +55,11 @@ void MQTTClient::connect(const std::string& host, int port) {
 }
 
 void MQTTClient::disconnect() {
-    mosquitto_disconnect(mosq_);
+    int ret = mosquitto_disconnect(mosq_);
+    if (ret == MOSQ_ERR_NO_CONN)
+        return;
+    if (ret != MOSQ_ERR_SUCCESS)
+        throw std::runtime_error("Failed to disconnect from MQTT broker: " + std::string(mosquitto_strerror(ret)));
 
     std::scoped_lock lock(mutex_);
     connected_ = false;

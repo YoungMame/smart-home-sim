@@ -20,6 +20,7 @@ add_executable(smart-home-tests
   devices/test_virtual_thermostat.cpp
   core/test_device_engine.cpp
   protocols/test_virtual_device_mqtt.cpp
+  protocols/test_rest_components.cpp
 )
 
 target_link_libraries(smart-home-tests PRIVATE

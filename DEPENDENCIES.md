@@ -91,7 +91,7 @@ The `api` service exposes REST and WebSocket interfaces and bridges to MQTT.
 - Native local builds require manually installing C++ toolchain, CMake, SQLite3 dev libs, Mosquitto dev libs, and OpenSSL dev libs.
 - Test builds require internet access at configure time to fetch GoogleTest and other CMake `FetchContent` dependencies.
 
-## Install dev dependencies (for native builds and test runs, IDE support, etc.):
+## Install system libraries
 
 ### Ubuntu/Debian
 ```bash
@@ -105,8 +105,19 @@ sudo apt update
 sudo apt install libsqlite3-dev libmosquitto-dev libssl-dev
 ```
 
-### Windows (using MSYS2)
+### Windows (using MSYS2 mingw64-ucrt)
+```bash
+pacman -S mingw-w64-ucrt-x86_64-sqlite3 mingw-w64-ucrt-x86_64-mosquitto mingw-w64-ucrt-x86_64-openssl
+```
+
+### Windows (using MSYS2 mingw64)
 ```bash
 pacman -S mingw-w64-x86_64-sqlite3 mingw-w64-x86_64-mosquitto mingw-w64-x86_64-openssl
 ```
+
+### Windows (using MSYS2 msys2)
+```bash
+pacman -S sqlite3 mosquitto openssl
+```
+
 

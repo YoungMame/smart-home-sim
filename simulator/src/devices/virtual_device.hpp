@@ -17,7 +17,7 @@ public:
                   std::string room,
                   const VirtualDeviceModel* model);
 
-    virtual ~VirtualDevice() = default;
+    ~VirtualDevice();
 
     // Non-copyable (devices are owned by DeviceEngine via unique_ptr).
     VirtualDevice(const VirtualDevice&)            = delete;
@@ -41,10 +41,9 @@ public:
     const std::map<std::string, std::string>& states() const { return states_; }
     void        set_state(const std::string& key, const std::string& value);
 
-    // MQTT — non-owning pointer, set by DeviceEngine after construction.
-    // Only relevant when protocol() == "mqtt".
-    void set_mqtt_client(ProtocolClient* client) { mqtt_client_ = client; }
-    ProtocolClient* mqtt_client() const { return mqtt_client_; }
+    // Non-owning pointer to the transport client linked to this device.
+    void set_protocol_client(ProtocolClient* client) { protocol_client_ = client; }
+    ProtocolClient* protocol_client() const { return protocol_client_; }
 
     // Publishes the full current state as JSON to home/<type>/<id>/state.
     // No-op if no MQTT client is set.
@@ -66,5 +65,5 @@ protected:
     std::map<std::string, std::string> states_;
 
 private:
-    ProtocolClient* mqtt_client_{ nullptr };
+    ProtocolClient* protocol_client_{ nullptr };
 };

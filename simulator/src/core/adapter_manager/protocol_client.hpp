@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <utility>
 #include <vector>
 
 enum class AdapterProtocol {
@@ -19,9 +20,13 @@ struct SimulatedMessage {
 
 class ProtocolClient {
 public:
-    ProtocolClient(): connected_(false) {}
+    explicit ProtocolClient(std::string device_id = "")
+        : connected_(false), device_id_(std::move(device_id)) {}
 
     virtual ~ProtocolClient() = default;
+
+    const std::string& device_id() const { return device_id_; }
+    void set_device_id(std::string device_id) { device_id_ = std::move(device_id); }
 
     virtual AdapterProtocol protocol() const = 0;
 
@@ -36,4 +41,5 @@ public:
 
 protected:
     bool connected_;
+    std::string device_id_;
 };
