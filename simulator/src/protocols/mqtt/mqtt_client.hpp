@@ -1,27 +1,35 @@
 #pragma once
 
+#include <mutex>
 #include <string>
+#include <vector>
+
 #include <mosquitto.h>
 
-// Pure interface — implemented by MQTTClient (real) and MockMQTTClient (tests).
-class IMQTTClient {
-public:
-    virtual ~IMQTTClient() = default;
-    virtual void connect(const std::string& host, int port) = 0;
-    virtual void disconnect() = 0;
-    virtual void publish(const std::string& topic, const std::string& message) = 0;
-};
+#include "core/adapter_manager/protocol_client.hpp"
 
 // Thin wrapper around libmosquitto.
-class MQTTClient : public IMQTTClient {
+class MQTTClient : public ProtocolClient {
 public:
     MQTTClient();
     ~MQTTClient() override;
 
-    void connect(const std::string& host, int port) override;
+    AdapterProtocol protocol() const override;
+
+    void connect(const std::string& endpoint) override;
     void disconnect() override;
-    void publish(const std::string& topic, const std::string& message) override;
+    bool is_connected() const override;
+
+    void send(const std::string& topic, const std::string& payload) override;
+
+    std::vector<SimulatedMessage> messages() const override;
+    void clear_messages() override;
+
+    void connect(const std::string& host, int port);
+    void publish(const std::string& topic, const std::string& message);
 
 private:
+    mutable std::mutex            mutex_;
+    std::vector<SimulatedMessage> messages_;
     mosquitto* mosq_;
 };

@@ -63,5 +63,5 @@ void VirtualDevice::publish_state() const {
     for (const auto& [k, v] : states_)
         payload[k] = v;
 
-    mqtt_client_->publish(state_topic(), payload.dump());
+    mqtt_client_->send(state_topic(), payload.dump());
 }

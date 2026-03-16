@@ -5,18 +5,28 @@
 
 // ── Mock ──────────────────────────────────────────────────────────────────────
 
-struct MockMQTTClient : IMQTTClient {
+struct MockMQTTClient : ProtocolClient {
     std::string last_topic;
     std::string last_message;
     int         publish_call_count{ 0 };
 
-    void connect(const std::string&, int) override {}
+    AdapterProtocol protocol() const override { return AdapterProtocol::Mqtt; }
+
+    void connect(const std::string&) override {}
     void disconnect() override {}
-    void publish(const std::string& topic, const std::string& message) override {
+    bool is_connected() const override { return true; }
+
+    void send(const std::string& topic, const std::string& message) override {
         last_topic   = topic;
         last_message = message;
         ++publish_call_count;
     }
+
+    std::vector<SimulatedMessage> messages() const override {
+        return {};
+    }
+
+    void clear_messages() override {}
 };
 
 // ── Helpers ───────────────────────────────────────────────────────────────────

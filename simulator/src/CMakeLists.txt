@@ -56,6 +56,8 @@ find_path(MOSQUITTO_INCLUDE mosquitto.h REQUIRED)
 # Add source files here as they are created in each sub-module.
 # Using explicit lists (preferred over GLOB) so CMake reruns on new files.
 set(CORE_SOURCES
+  core/adapter_manager/adapter_manager.cpp
+  core/adapter_manager/protocol_client.cpp
   core/scheduler/event_scheduler.cpp
   core/device_engine/device_engine.cpp
   core/event_engine/event_engine.cpp
@@ -71,9 +73,9 @@ set(DEVICE_SOURCES
 
 set(PROTOCOL_SOURCES
   protocols/mqtt/mqtt_client.cpp
+  protocols/rest/rest_client.cpp
+  protocols/ws/ws_client.cpp
   # protocols/mqtt/mqtt_adapter.cpp
-  # protocols/rest/rest_adapter.cpp
-  # protocols/ws/ws_adapter.cpp
 )
 
 set(SERVER_SOURCES
