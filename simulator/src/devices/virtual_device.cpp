@@ -42,15 +42,7 @@ std::shared_ptr<ProtocolClient> VirtualDevice::build_protocol_client_() {
 }
 
 VirtualDevice::~VirtualDevice() {
-    if (protocol_client_) {
-        protocol_client_->disconnect();
-    }
-
-    try {
-        AdapterManager::instance().unregister_device(id_);
-    } catch (...) {
-        // Destructors must not throw.
-    }
+    // Cleanup is coordinated by DeviceEngine to avoid singleton teardown order issues.
 };
 
 bool VirtualDevice::has_capability(const std::string& cap) const {

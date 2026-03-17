@@ -4,6 +4,7 @@
 #include <stdexcept>
 #include <utility>
 
+#include "core/adapter_manager/adapter_manager.hpp"
 #include "db/sqlite_store.hpp"
 #include "light/virtual_light.hpp"
 #include "thermostat/virtual_thermostat.hpp"
@@ -62,6 +63,10 @@ int DeviceEngine::load_from_db(const std::string& db_path, const std::string& se
     int count = 0;
     std::lock_guard<std::mutex> lock(mutex_);
     db_path_ = db_path;
+
+    for (const auto& [existing_id, _] : devices_) {
+        AdapterManager::instance().unregister_device(existing_id);
+    }
 
     models_.clear();
     devices_.clear();
@@ -162,6 +167,7 @@ bool DeviceEngine::remove_device(const std::string& device_id) {
         return false;
     }
 
+    AdapterManager::instance().unregister_device(device_id);
     return devices_.erase(device_id) > 0;
 }
 
