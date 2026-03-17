@@ -2,9 +2,9 @@
 
 #include <stdexcept>
 
+#include "ip_manager/ip_manager.hpp"
 #include "rest/rest_client.hpp"
 #include "rest/rest_server.hpp"
-#include "rest/rest_servers_manager.hpp"
 
 // ---- RestClient -------------------------------------------------------------
 
@@ -113,76 +113,89 @@ TEST(RestServerTest, ClearMessagesRemovesAllMessages) {
     EXPECT_TRUE(server.messages().empty());
 }
 
-// ---- RestServersManager -----------------------------------------------------
+// ---- IpManager -------------------------------------------------------------
 
-TEST(RestServersManagerTest, AssignEndpointUsesBaseAndPortAndDeviceId) {
-    RestServersManager manager(51000);
+TEST(IpManagerTest, AssignIpByteReturnsFirstAvailableByte) {
+    IpManager manager(43);
 
-    const std::string endpoint = manager.assign_endpoint("dev-001", "http://127.0.0.1");
+    const auto ip_byte = manager.assign_ip_byte("dev-001");
 
-    EXPECT_EQ(endpoint, "http://127.0.0.1:51000/devices/dev-001");
+    EXPECT_EQ(ip_byte, static_cast<std::uint8_t>(43));
 }
 
-TEST(RestServersManagerTest, AssignEndpointReturnsExistingValueForSameDevice) {
-    RestServersManager manager(51000);
+TEST(IpManagerTest, AssignIpByteReturnsExistingValueForSameDevice) {
+    IpManager manager(10);
 
-    const std::string first = manager.assign_endpoint("dev-001", "http://host");
-    const std::string second = manager.assign_endpoint("dev-001", "http://other");
+    const auto first = manager.assign_ip_byte("dev-001");
+    const auto second = manager.assign_ip_byte("dev-001");
 
     EXPECT_EQ(first, second);
 }
 
-TEST(RestServersManagerTest, AssignEndpointIncrementsPortForNewDevice) {
-    RestServersManager manager(51000);
+TEST(IpManagerTest, AssignIpByteIncrementsForNewDevice) {
+    IpManager manager(20);
 
-    const std::string first = manager.assign_endpoint("dev-001", "http://host");
-    const std::string second = manager.assign_endpoint("dev-002", "http://host");
+    const auto first = manager.assign_ip_byte("dev-001");
+    const auto second = manager.assign_ip_byte("dev-002");
 
-    EXPECT_EQ(first, "http://host:51000/devices/dev-001");
-    EXPECT_EQ(second, "http://host:51001/devices/dev-002");
+    EXPECT_EQ(first, static_cast<std::uint8_t>(20));
+    EXPECT_EQ(second, static_cast<std::uint8_t>(21));
 }
 
-TEST(RestServersManagerTest, EndpointForReturnsNulloptWhenDeviceIsUnknown) {
-    RestServersManager manager;
+TEST(IpManagerTest, IpByteForReturnsNulloptWhenDeviceIsUnknown) {
+    IpManager manager;
 
-    EXPECT_FALSE(manager.endpoint_for("missing").has_value());
+    EXPECT_FALSE(manager.ip_byte_for("missing").has_value());
 }
 
-TEST(RestServersManagerTest, HasDeviceRemoveAndEndpointForWorkTogether) {
-    RestServersManager manager;
-    manager.assign_endpoint("dev-001", "http://127.0.0.1");
+TEST(IpManagerTest, HasDeviceRemoveAndIpByteForWorkTogether) {
+    IpManager manager;
+    manager.assign_ip_byte("dev-001");
 
     ASSERT_TRUE(manager.has_device("dev-001"));
-    ASSERT_TRUE(manager.endpoint_for("dev-001").has_value());
+    ASSERT_TRUE(manager.ip_byte_for("dev-001").has_value());
 
     manager.remove_device("dev-001");
 
     EXPECT_FALSE(manager.has_device("dev-001"));
-    EXPECT_FALSE(manager.endpoint_for("dev-001").has_value());
+    EXPECT_FALSE(manager.ip_byte_for("dev-001").has_value());
 }
 
-TEST(RestServersManagerTest, ClearRemovesAllAndResetsPortCursor) {
-    RestServersManager manager(52000);
-    manager.assign_endpoint("dev-001", "http://host");
-    manager.assign_endpoint("dev-002", "http://host");
+TEST(IpManagerTest, ClearRemovesAllAndResetsIpCursor) {
+    IpManager manager(30);
+    manager.assign_ip_byte("dev-001");
+    manager.assign_ip_byte("dev-002");
 
     manager.clear();
 
     EXPECT_FALSE(manager.has_device("dev-001"));
     EXPECT_FALSE(manager.has_device("dev-002"));
 
-    const std::string endpoint = manager.assign_endpoint("dev-003", "http://host");
-    EXPECT_EQ(endpoint, "http://host:52000/devices/dev-003");
+    const auto ip_byte = manager.assign_ip_byte("dev-003");
+    EXPECT_EQ(ip_byte, static_cast<std::uint8_t>(30));
 }
 
-TEST(RestServersManagerTest, AssignEndpointRejectsInvalidInput) {
-    RestServersManager manager;
+TEST(IpManagerTest, AssignIpByteRejectsInvalidDeviceId) {
+    IpManager manager;
 
-    EXPECT_THROW(manager.assign_endpoint("", "http://host"), std::invalid_argument);
-    EXPECT_THROW(manager.assign_endpoint("dev-001", ""), std::invalid_argument);
+    EXPECT_THROW(manager.assign_ip_byte(""), std::invalid_argument);
 }
 
-TEST(RestServersManagerTest, ConstructorRejectsInvalidPortRange) {
-    EXPECT_THROW(RestServersManager(0), std::invalid_argument);
-    EXPECT_THROW(RestServersManager(65536), std::invalid_argument);
+TEST(IpManagerTest, ConstructorRejectsInvalidIpByteRange) {
+    EXPECT_THROW(IpManager(0), std::invalid_argument);
+    EXPECT_THROW(IpManager(1), std::invalid_argument);
+}
+
+// Delete a device and check that its IP byte can be reassigned to a new device, ensuring proper cleanup of resources.
+
+TEST(IpManagerTest, RemoveDeviceFreesIpByteForReassignment) {
+    IpManager manager(50);
+
+    const auto ip_byte1 = manager.assign_ip_byte("dev-001");
+    EXPECT_EQ(ip_byte1, static_cast<std::uint8_t>(50));
+
+    manager.remove_device("dev-001");
+
+    const auto ip_byte2 = manager.assign_ip_byte("dev-002");
+    EXPECT_EQ(ip_byte2, static_cast<std::uint8_t>(50));
 }

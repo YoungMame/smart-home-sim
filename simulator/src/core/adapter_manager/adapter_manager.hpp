@@ -7,9 +7,6 @@
 
 #include "protocol_client.hpp"
 
-class RestServersManager;
-class WsServersManager;
-
 class AdapterManager {
 public:
     static AdapterManager& instance();
@@ -27,7 +24,6 @@ public:
     void disconnect(AdapterProtocol protocol);
 
     void connect_all(const std::string& rest_endpoint,
-                     const std::string& ws_endpoint,
                      const std::string& mqtt_endpoint);
     void disconnect_all();
 
@@ -39,11 +35,8 @@ public:
     void clear_messages(AdapterProtocol protocol);
 
 private:
-    void refresh_rest_servers(const std::string& rest_base_endpoint);
-    void refresh_ws_servers(const std::string& ws_base_endpoint);
+    void refresh_rest_servers();
 
     mutable std::mutex mutex_;
     std::vector<std::shared_ptr<ProtocolClient>> clients_;
-    std::unique_ptr<RestServersManager>          rest_servers_manager_;
-    std::unique_ptr<WsServersManager>            ws_servers_manager_;
 };

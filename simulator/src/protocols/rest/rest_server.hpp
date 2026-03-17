@@ -9,8 +9,12 @@
 
 class RestServer : public ProtocolClient {
 public:
+    RestServer() = default;
     RestServer(std::string device_id);
     ~RestServer() override;
+
+    RestServer(const RestServer&) = delete;
+    RestServer& operator=(const RestServer&) = delete;
 
     AdapterProtocol protocol() const override;
 

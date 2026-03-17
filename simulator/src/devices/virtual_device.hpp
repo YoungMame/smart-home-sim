@@ -1,23 +1,25 @@
 #pragma once
 
-#include <map>
-#include <string>
-#include <vector>
+# include <map>
+# include <string>
+# include <vector>
+# include <memory>
 
-#include "core/adapter_manager/protocol_client.hpp"
-#include "event_engine/event.hpp"
-#include "virtual_device_model.hpp"
+# include "core/adapter_manager/protocol_client.hpp"
+# include "event_engine/event.hpp"
+# include "virtual_device_model.hpp"
 
 // Abstract base class for all virtual smart devices.
 // Each device subtype (light, thermostat, …) must implement update_state().
 class VirtualDevice {
 public:
+    VirtualDevice() = delete;
     VirtualDevice(std::string id,
                   std::string label,
                   std::string room,
                   const VirtualDeviceModel* model);
 
-    ~VirtualDevice();
+    virtual ~VirtualDevice();
 
     // Non-copyable (devices are owned by DeviceEngine via unique_ptr).
     VirtualDevice(const VirtualDevice&)            = delete;
@@ -66,4 +68,6 @@ protected:
 
 private:
     ProtocolClient* protocol_client_{ nullptr };
+
+    std::shared_ptr<ProtocolClient> build_protocol_client_();
 };

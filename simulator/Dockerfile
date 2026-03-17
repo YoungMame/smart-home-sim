@@ -58,6 +58,7 @@ FROM alpine:3.21 AS dev
 
 RUN apk add --no-cache \
         build-base \
+        valgrind \
         cmake \
         ninja \
         git \

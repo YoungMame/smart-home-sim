@@ -58,6 +58,7 @@ find_path(MOSQUITTO_INCLUDE mosquitto.h REQUIRED)
 set(CORE_SOURCES
   core/adapter_manager/adapter_manager.cpp
   core/adapter_manager/protocol_client.cpp
+  core/ip_manager/ip_manager.cpp
   core/scheduler/event_scheduler.cpp
   core/device_engine/device_engine.cpp
   core/event_engine/event_engine.cpp
@@ -75,9 +76,6 @@ set(PROTOCOL_SOURCES
   protocols/mqtt/mqtt_client.cpp
   protocols/rest/rest_client.cpp
   protocols/rest/rest_server.cpp
-  protocols/rest/rest_servers_manager.cpp
-  protocols/ws/ws_client.cpp
-  protocols/ws/ws_servers_manager.cpp
   # protocols/mqtt/mqtt_adapter.cpp
 )
 

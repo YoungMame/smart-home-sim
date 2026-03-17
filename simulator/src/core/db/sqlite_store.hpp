@@ -14,6 +14,11 @@ struct DeviceRow {
 
 class SqliteStore {
 public:
+    SqliteStore() = delete;
+    ~SqliteStore() = delete;
+    SqliteStore(const SqliteStore&) = delete;
+    SqliteStore& operator=(const SqliteStore&) = delete;
+
     static void initialize(const std::string& db_path, const std::string& seed_path);
 
     static std::vector<VirtualDeviceModel> load_models(const std::string& db_path);

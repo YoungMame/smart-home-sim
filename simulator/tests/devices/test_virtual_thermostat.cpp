@@ -7,7 +7,7 @@ static VirtualDeviceModel make_thermostat_model() {
     VirtualDeviceModel m;
     m.id           = "nest_thermostat";
     m.type         = "thermostat";
-    m.protocol     = "ws";
+    m.protocol     = "rest";
     m.capabilities = {"temperature", "target_temperature"};
     return m;
 }
@@ -22,7 +22,7 @@ TEST(VirtualThermostatTest, ConstructorStoresMetadata) {
     EXPECT_EQ(t.label(),    "Thermostat Salon");
     EXPECT_EQ(t.room(),     "living_room");
     EXPECT_EQ(t.type(),     "thermostat");
-    EXPECT_EQ(t.protocol(), "ws");
+    EXPECT_EQ(t.protocol(), "rest");
 }
 
 // ── init_states ───────────────────────────────────────────────────────────────

@@ -8,6 +8,12 @@
 
 class RestClient {
 public:
+    RestClient() = default;
+    ~RestClient();
+
+    RestClient(const RestClient&) = delete;
+    RestClient& operator=(const RestClient&) = delete;
+
     void connect(const std::string& endpoint);
     void disconnect();
     bool is_connected() const;

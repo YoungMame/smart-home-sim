@@ -5,6 +5,11 @@
 
 class CLI {
 public:
+    CLI() = delete;
+    ~CLI() = delete;
+    CLI(const CLI&) = delete;
+    CLI& operator=(const CLI&) = delete;
+
     static void print_help();
 
     // Parses a raw CLI line into argv-like tokens.

@@ -4,6 +4,12 @@
 
 class VirtualLight : public VirtualDevice {
 public:
+    VirtualLight() = delete;
+    ~VirtualLight() = default;
+
+    VirtualLight(const VirtualLight&) = delete;
+    VirtualLight& operator=(const VirtualLight&) = delete;
+
     // Inherit the VirtualDevice constructor directly.
     using VirtualDevice::VirtualDevice;
 

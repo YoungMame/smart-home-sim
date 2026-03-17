@@ -4,8 +4,6 @@
 #include <stdexcept>
 #include <string>
 
-#include "core/adapter_manager/adapter_manager.hpp"
-
 MQTTClient::MQTTClient() {
     set_device_id("mqtt-global");
     mosq_ = mosquitto_new(nullptr, true, nullptr);
@@ -16,11 +14,6 @@ MQTTClient::MQTTClient() {
 MQTTClient::~MQTTClient() {
     try {
         disconnect();
-    } catch (...) {
-    }
-
-    try {
-        AdapterManager::instance().unregister_client(AdapterProtocol::Mqtt);
     } catch (...) {
     }
 

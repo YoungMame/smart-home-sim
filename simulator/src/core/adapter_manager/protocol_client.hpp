@@ -6,7 +6,6 @@
 
 enum class AdapterProtocol {
     Rest,
-    Ws,
     Mqtt,
 };
 
@@ -24,6 +23,9 @@ public:
         : connected_(false), device_id_(std::move(device_id)) {}
 
     virtual ~ProtocolClient() = default;
+
+    ProtocolClient(const ProtocolClient&) = default;
+    ProtocolClient& operator=(const ProtocolClient&) = default;
 
     const std::string& device_id() const { return device_id_; }
     void set_device_id(std::string device_id) { device_id_ = std::move(device_id); }

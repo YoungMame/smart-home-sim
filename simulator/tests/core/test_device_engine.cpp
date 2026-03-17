@@ -32,7 +32,7 @@ TEST(DeviceEngineTest, LoadFromDb_DevicesAreRetrievable) {
     EXPECT_EQ(lamp->id(),    "lamp_salon");
     EXPECT_EQ(lamp->label(), "Lampe du salon");
     EXPECT_EQ(lamp->room(),  "salon");
-    EXPECT_EQ(lamp->type(),  "light");
+    EXPECT_EQ(lamp->type(),  "light"); 
 }
 
 // ── get_device ────────────────────────────────────────────────────────────────

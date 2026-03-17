@@ -36,7 +36,7 @@ int main() {
     const int loaded = DeviceEngine::instance().load_from_db(db_path, seed_path);
     std::cout << "[main] " << loaded << " virtual device(s) loaded.\n";
 
-    // TODO: initialize AdapterManager (MQTT, REST, WS adapters)
+    // TODO: initialize AdapterManager (MQTT and REST adapters)
 
     const char* env_port = std::getenv("CORE_PORT");
     const int api_port = env_port ? std::stoi(env_port) : 4000;

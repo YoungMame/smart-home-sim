@@ -14,6 +14,9 @@ public:
     MQTTClient();
     ~MQTTClient() override;
 
+    MQTTClient(const MQTTClient&) = delete;
+    MQTTClient& operator=(const MQTTClient&) = delete;
+
     AdapterProtocol protocol() const override;
 
     void connect(const std::string& endpoint) override;

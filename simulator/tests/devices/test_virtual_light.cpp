@@ -18,7 +18,9 @@ static VirtualDeviceModel make_light_model(bool with_color = false) {
 
 TEST(VirtualLightTest, ConstructorStoresMetadata) {
     VirtualDeviceModel m = make_light_model();
+    std::cout << "model made" << std::endl;
     VirtualLight light("l1", "Bureau", "office", &m);
+    std::cout << "light constructed" << std::endl;
 
     EXPECT_EQ(light.id(),       "l1");
     EXPECT_EQ(light.label(),    "Bureau");

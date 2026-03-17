@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS devices (
 INSERT OR IGNORE INTO device_models (id, label, type, protocol) VALUES
     ('ikea_bulb_v1', 'IKEA Bulb v1', 'light', 'mqtt'),
     ('philips_hue_v2', 'Philips Hue v2', 'light', 'rest'),
-    ('nest_thermostat', 'Nest Thermostat', 'thermostat', 'ws');
+    ('nest_thermostat', 'Nest Thermostat', 'thermostat', 'rest');
 
 INSERT OR IGNORE INTO model_capabilities (model_id, capability) VALUES
     ('ikea_bulb_v1', 'on_off'),

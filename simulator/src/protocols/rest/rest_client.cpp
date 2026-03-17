@@ -10,6 +10,8 @@ namespace {
 
 } // namespace
 
+RestClient::~RestClient() = default;
+
 void RestClient::connect(const std::string& endpoint) {
     std::scoped_lock lock(mutex_);
     endpoint_ = endpoint;
