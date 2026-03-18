@@ -44,6 +44,24 @@ TEST(VirtualDeviceMqttTest, StateTopic_Format) {
     EXPECT_EQ(light.state_topic(), "home/light/lamp_salon/state");
 }
 
+TEST(VirtualDeviceMqttTest, Constructor_CreatesMqttClientAssociation) {
+    VirtualDeviceModel m = make_mqtt_light();
+    VirtualLight light("lamp_salon", "Lampe salon", "salon", &m);
+
+    ASSERT_NE(light.protocol_client(), nullptr);
+    EXPECT_EQ(light.protocol_client()->protocol(), AdapterProtocol::Mqtt);
+}
+
+TEST(VirtualDeviceMqttTest, Constructor_UsesSharedMqttClient) {
+    VirtualDeviceModel m = make_mqtt_light();
+    VirtualLight light1("lamp_salon", "Lampe salon", "salon", &m);
+    VirtualLight light2("lamp_chambre", "Lampe chambre", "chambre", &m);
+
+    ASSERT_NE(light1.protocol_client(), nullptr);
+    ASSERT_NE(light2.protocol_client(), nullptr);
+    EXPECT_EQ(light1.protocol_client(), light2.protocol_client());
+}
+
 // ── publish_state ─────────────────────────────────────────────────────────────
 
 TEST(VirtualDeviceMqttTest, PublishState_IsNoopWithoutClient) {

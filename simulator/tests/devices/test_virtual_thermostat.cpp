@@ -25,6 +25,24 @@ TEST(VirtualThermostatTest, ConstructorStoresMetadata) {
     EXPECT_EQ(t.protocol(), "rest");
 }
 
+TEST(VirtualThermostatTest, Constructor_CreatesRestServerAssociation) {
+    VirtualDeviceModel m = make_thermostat_model();
+    VirtualThermostat t("t1", "Thermostat Salon", "living_room", &m);
+
+    ASSERT_NE(t.protocol_client(), nullptr);
+    EXPECT_EQ(t.protocol_client()->protocol(), AdapterProtocol::Rest);
+}
+
+TEST(VirtualThermostatTest, Constructor_UsesSharedRestServer) {
+    VirtualDeviceModel m = make_thermostat_model();
+    VirtualThermostat t1("t1", "Thermostat 1", "living_room", &m);
+    VirtualThermostat t2("t2", "Thermostat 2", "bedroom", &m);
+
+    ASSERT_NE(t1.protocol_client(), nullptr);
+    ASSERT_NE(t2.protocol_client(), nullptr);
+    EXPECT_EQ(t1.protocol_client(), t2.protocol_client());
+}
+
 // ── init_states ───────────────────────────────────────────────────────────────
 
 TEST(VirtualThermostatTest, InitStates_DefaultValues) {

@@ -35,8 +35,6 @@ public:
     void clear_messages(AdapterProtocol protocol);
 
 private:
-    void refresh_rest_servers();
-
     mutable std::mutex mutex_;
     std::vector<std::shared_ptr<ProtocolClient>> clients_;
 };

@@ -3,6 +3,7 @@
 #include <mutex>
 #include <string>
 #include <vector>
+# include <iostream>
 
 #include <mosquitto.h>
 

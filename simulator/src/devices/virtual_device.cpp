@@ -5,6 +5,7 @@
 #include <nlohmann/json.hpp>
 
 #include "core/adapter_manager/adapter_manager.hpp"
+#include "protocols/mqtt/mqtt_client.hpp"
 #include "protocols/rest/rest_server.hpp"
 
 using json = nlohmann::json;
@@ -31,11 +32,19 @@ VirtualDevice::VirtualDevice(std::string id,
 
 std::shared_ptr<ProtocolClient> VirtualDevice::build_protocol_client_() {
     if (model_->protocol == "mqtt") {
-        return nullptr;
+        if (AdapterManager::instance().has_client(AdapterProtocol::Mqtt)) {
+            return AdapterManager::instance().get_client(AdapterProtocol::Mqtt);
+        }
+
+        return std::make_shared<MQTTClient>();
     }
 
     if (model_->protocol == "rest") {
-        return std::make_shared<RestServer>(id_);
+        if (AdapterManager::instance().has_client(AdapterProtocol::Rest)) {
+            return AdapterManager::instance().get_client(AdapterProtocol::Rest);
+        }
+
+        return std::make_shared<RestServer>("rest-global");
     }
 
     throw std::runtime_error("Unsupported protocol for device: " + model_->protocol);

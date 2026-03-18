@@ -72,6 +72,8 @@ void MQTTClient::publish(const std::string& topic, const std::string& message) {
         throw std::runtime_error("MQTT client is not connected");
     }
 
+    std::cout << "[MQTTClient] Publishing to topic '" << topic << "': " << message << "\n";
+
     int ret = mosquitto_publish(mosq_, nullptr, topic.c_str(),
                                static_cast<int>(message.size()), message.c_str(), 0, false);
     if (ret != MOSQ_ERR_SUCCESS)
