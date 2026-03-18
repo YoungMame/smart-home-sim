@@ -50,6 +50,11 @@ bool VirtualDevice::has_capability(const std::string& cap) const {
     return std::find(caps.begin(), caps.end(), cap) != caps.end();
 }
 
+bool VirtualDevice::has_available_event(const std::string& event_type) const {
+    const auto& events = model_->available_events;
+    return std::find(events.begin(), events.end(), event_type) != events.end();
+}
+
 std::string VirtualDevice::get_state(const std::string& key) const {
     auto it = states_.find(key);
     return it != states_.end() ? it->second : "";
@@ -84,7 +89,7 @@ std::string VirtualDevice::state_topic() const {
 }
 
 void VirtualDevice::publish_state() const {
-    if (!protocol_client_) return;
+    if (!protocol_client_ || !protocol_client_->is_connected()) return;
 
     json payload = json::object();
     for (const auto& [k, v] : states_)

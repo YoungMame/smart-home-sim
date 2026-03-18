@@ -27,7 +27,7 @@ class EventEngine {
 
 ## DeviceEngine
 
-Manages the virtual devices in the simulation.
+Handles the logic for updating device states based on events and interactions.
 
 ```cpp
 class DeviceEngine {

@@ -68,6 +68,15 @@ void handle_show_models() {
 			std::cout << model.capabilities[i];
 		}
 
+		std::cout << " events=";
+
+		for (std::size_t i = 0; i < model.available_events.size(); ++i) {
+			if (i != 0) {
+				std::cout << ',';
+			}
+			std::cout << model.available_events[i];
+		}
+
 		std::cout << "\n";
 	}
 }
@@ -299,6 +308,16 @@ void CLI::run_interactive_loop() {
 	while (true) {
 		std::cout << "smart-home> " << std::flush;
 		if (!std::getline(std::cin, line)) {
+			if (std::cin.eof()) {
+				break;
+			}
+
+			if (std::cin.fail()) {
+				std::cin.clear();
+				std::cout << "\n";
+				continue;
+			}
+
 			break;
 		}
 

@@ -19,6 +19,7 @@ add_executable(smart-home-tests
   devices/test_virtual_light.cpp
   devices/test_virtual_thermostat.cpp
   core/test_device_engine.cpp
+  core/test_event_engine.cpp
   protocols/test_virtual_device_mqtt.cpp
   protocols/test_rest_components.cpp
 )

@@ -4,9 +4,47 @@
 
 #include <nlohmann/json.hpp>
 
+#include "event_engine/event_engine.hpp"
+
+namespace {
+std::string get_payload_value(const nlohmann::json& body,
+                              const char* primary_key,
+                              const char* fallback_key,
+                              const char* default_value) {
+    return body.value(primary_key, body.value(fallback_key, std::string(default_value)));
+}
+}
+
+void VirtualThermostat::register_event_handlers() {
+    if (has_available_event("thermostat.temperature_changed")) {
+        EventEngine::instance().add_event_handler(id(), "thermostat.temperature_changed", [this](const Event& event) {
+            handle_thermostat_temperature_changed(event);
+        });
+    }
+
+    if (has_available_event("thermostat.setpoint_changed")) {
+        EventEngine::instance().add_event_handler(id(), "thermostat.setpoint_changed", [this](const Event& event) {
+            handle_thermostat_setpoint_changed(event);
+        });
+    }
+
+    if (has_available_event("thermostat.mode_changed")) {
+        EventEngine::instance().add_event_handler(id(), "thermostat.mode_changed", [this](const Event& event) {
+            handle_thermostat_mode_changed(event);
+        });
+    }
+
+    if (has_available_event("thermostat.humidity_changed")) {
+        EventEngine::instance().add_event_handler(id(), "thermostat.humidity_changed", [this](const Event& event) {
+            handle_thermostat_humidity_changed(event);
+        });
+    }
+}
+
 void VirtualThermostat::init_states() {
     set_state("temperature",        "20.0");
     set_state("target_temperature", "21.0");
+    register_event_handlers();
 }
 
 void VirtualThermostat::update_state(const Event& event) {
@@ -18,4 +56,44 @@ void VirtualThermostat::update_state(const Event& event) {
     }
 
     publish_state();
+}
+
+void VirtualThermostat::handle_thermostat_temperature_changed(const Event& event) {
+    try {
+        const auto body = nlohmann::json::parse(event.payload.empty() ? "{}" : event.payload);
+        set_state("temperature", get_payload_value(body, "temperature", "value", "20.0"));
+        publish_state();
+    } catch (const nlohmann::json::exception& ex) {
+        std::cerr << "[VirtualThermostat] Invalid payload for temperature_changed on " << id() << ": " << ex.what() << "\n";
+    }
+}
+
+void VirtualThermostat::handle_thermostat_setpoint_changed(const Event& event) {
+    try {
+        const auto body = nlohmann::json::parse(event.payload.empty() ? "{}" : event.payload);
+        set_state("target_temperature", get_payload_value(body, "target_temperature", "value", "21.0"));
+        publish_state();
+    } catch (const nlohmann::json::exception& ex) {
+        std::cerr << "[VirtualThermostat] Invalid payload for setpoint_changed on " << id() << ": " << ex.what() << "\n";
+    }
+}
+
+void VirtualThermostat::handle_thermostat_mode_changed(const Event& event) {
+    try {
+        const auto body = nlohmann::json::parse(event.payload.empty() ? "{}" : event.payload);
+        set_state("mode", get_payload_value(body, "mode", "value", "auto"));
+        publish_state();
+    } catch (const nlohmann::json::exception& ex) {
+        std::cerr << "[VirtualThermostat] Invalid payload for mode_changed on " << id() << ": " << ex.what() << "\n";
+    }
+}
+
+void VirtualThermostat::handle_thermostat_humidity_changed(const Event& event) {
+    try {
+        const auto body = nlohmann::json::parse(event.payload.empty() ? "{}" : event.payload);
+        set_state("humidity", get_payload_value(body, "humidity", "value", "50.0"));
+        publish_state();
+    } catch (const nlohmann::json::exception& ex) {
+        std::cerr << "[VirtualThermostat] Invalid payload for humidity_changed on " << id() << ": " << ex.what() << "\n";
+    }
 }

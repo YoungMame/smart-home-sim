@@ -34,9 +34,11 @@ public:
     const std::string&        type()     const { return model_->type; }
     const std::string&        protocol() const { return model_->protocol; }
     const std::vector<std::string>& capabilities() const { return model_->capabilities; }
+    const std::vector<std::string>& available_events() const { return model_->available_events; }
     const std::string&        modelId()   const { return model_->id; }
     const VirtualDeviceModel* model_ptr() const { return model_; }
     bool has_capability(const std::string& cap) const;
+    bool has_available_event(const std::string& event_type) const;
 
     // Returns empty string if key is absent.
     std::string get_state(const std::string& key) const;

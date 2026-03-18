@@ -9,17 +9,21 @@
 #include "server/simulator_api.hpp"
 #include "cli/cli.hpp"
 
-static void signal_handler(int /*sig*/) {
+static void sigterm_handler(int /*sig*/) {
     SimulatorApi::instance().stop();
     EventScheduler::instance().stop();
+}
+
+static void sigint_handler(int /*sig*/) {
+    // Keep the process alive on Ctrl+C; the interactive CLI loop handles it.
 }
 
 namespace {
 } // namespace
 
 int main() {
-    std::signal(SIGINT,  signal_handler);
-    std::signal(SIGTERM, signal_handler);
+    std::signal(SIGINT,  sigint_handler);
+    std::signal(SIGTERM, sigterm_handler);
 
     std::cout << "[main] Smart Home Simulator starting...\n";
 

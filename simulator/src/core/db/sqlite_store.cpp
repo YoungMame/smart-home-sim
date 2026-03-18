@@ -128,6 +128,14 @@ std::vector<VirtualDeviceModel> SqliteStore::load_models(const std::string& db_p
         throw std::runtime_error("[SqliteStore] Failed to query model capabilities");
     }
 
+    sqlite3_stmt* events_stmt = nullptr;
+    const char* events_query = "SELECT event_type FROM model_available_events WHERE model_id = ? ORDER BY event_type;";
+    if (sqlite3_prepare_v2(db, events_query, -1, &events_stmt, nullptr) != SQLITE_OK) {
+        sqlite3_finalize(caps_stmt);
+        sqlite3_finalize(models_stmt);
+        throw std::runtime_error("[SqliteStore] Failed to query model available events");
+    }
+
     while (sqlite3_step(models_stmt) == SQLITE_ROW) {
         VirtualDeviceModel model;
         model.id = reinterpret_cast<const char*>(sqlite3_column_text(models_stmt, 0));
@@ -145,9 +153,20 @@ std::vector<VirtualDeviceModel> SqliteStore::load_models(const std::string& db_p
             );
         }
 
+        sqlite3_reset(events_stmt);
+        sqlite3_clear_bindings(events_stmt);
+        sqlite3_bind_text(events_stmt, 1, model.id.c_str(), -1, SQLITE_TRANSIENT);
+
+        while (sqlite3_step(events_stmt) == SQLITE_ROW) {
+            model.available_events.emplace_back(
+                reinterpret_cast<const char*>(sqlite3_column_text(events_stmt, 0))
+            );
+        }
+
         models.push_back(std::move(model));
     }
 
+    sqlite3_finalize(events_stmt);
     sqlite3_finalize(caps_stmt);
     sqlite3_finalize(models_stmt);
 

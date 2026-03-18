@@ -16,4 +16,12 @@ public:
     void init_states();
 
     void update_state(const Event& event) override;
+
+    void register_event_handlers();
+
+private:
+    void handle_thermostat_temperature_changed(const Event& event);
+    void handle_thermostat_setpoint_changed(const Event& event);
+    void handle_thermostat_mode_changed(const Event& event);
+    void handle_thermostat_humidity_changed(const Event& event);
 };

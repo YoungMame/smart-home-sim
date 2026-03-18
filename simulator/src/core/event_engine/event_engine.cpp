@@ -45,7 +45,19 @@ void EventEngine::process_event(const Event& event) {
         handle_state_change(event);
     } else if (event.type == "trigger") {
         handle_trigger(event);
+    } else {
+        handle_single_event(event);
     }
+}
+
+void EventEngine::add_event_handler(const std::string& device_id, const std::string& event_type, std::function<void(const Event&)> handler) {
+    if (!is_builtin_event_type(event_type) && !is_known_event_type(event_type)) {
+        std::cerr << "[EventEngine] Refusing handler registration for unknown event type: '"
+                  << event_type << "'\n";
+        return;
+    }
+
+    custom_handlers_[device_id].handlers[event_type] = std::move(handler);
 }
 
 // ── Handlers ─────────────────────────────────────────────────────────────────
@@ -91,4 +103,20 @@ void EventEngine::handle_trigger(const Event& event) {
     } catch (const json::exception& ex) {
         std::cerr << "[EventEngine] Failed to parse trigger payload: " << ex.what() << "\n";
     }
+}
+
+void EventEngine::handle_single_event(const Event& event) {
+    const auto& handlers_it = custom_handlers_.find(event.device_id);
+    if (handlers_it == custom_handlers_.end()) {
+        std::cerr << "[EventEngine] No handlers found for device_id: '" << event.device_id << "'\n";
+        return;
+    }
+
+    const auto& event_handler_it = handlers_it->second.handlers.find(event.type);
+    if (event_handler_it == handlers_it->second.handlers.end()) {
+        std::cerr << "[EventEngine] No handler for event type '" << event.type << "' on device_id: '" << event.device_id << "'\n";
+        return;
+    }
+
+    event_handler_it->second(event);
 }

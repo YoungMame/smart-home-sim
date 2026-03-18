@@ -75,13 +75,24 @@ inline const std::unordered_map<std::string, std::unordered_set<std::string>> Ev
 };
 
 inline bool is_known_event_type(const std::string& type) {
-    for (const auto& [category, subtypes] : EventTypes)
-        if (subtypes.count(type)) return true;
-    return false;
+    const std::size_t dot = type.find('.');
+    if (dot == std::string::npos || dot == 0 || dot + 1 >= type.size()) {
+        return false;
+    }
+
+    const std::string category = type.substr(0, dot);
+    const std::string subtype = type.substr(dot + 1);
+
+    const auto it = EventTypes.find(category);
+    if (it == EventTypes.end()) {
+        return false;
+    }
+
+    return it->second.count(subtype) > 0;
 }
 
 struct Event {
-    std::string                               type;         // e.g. "state_change", "timer", "trigger"
+    std::string                               type;         // e.g. "state_change", "trigger", "light.turned_on"
     std::string                               device_id;    // target device (empty = broadcast)
     std::string                               payload;      // JSON-encoded data
     std::chrono::steady_clock::time_point     scheduled_at; // when the event should be dispatched

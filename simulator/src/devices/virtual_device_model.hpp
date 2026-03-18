@@ -11,4 +11,5 @@ struct VirtualDeviceModel {
     std::string              type;
     std::string              protocol;
     std::vector<std::string> capabilities;
+    std::vector<std::string> available_events;
 };

@@ -117,4 +117,17 @@ docker compose --profile test run --build --rm test
 | HTTP REST | `http://localhost:3000` | Virtual device API |
 | WebSocket | `ws://localhost:8080` | Real-time device events |
 
+## CLI
+
+The `core` service provides an interactive CLI for managing the simulation. You can create devices, trigger events, and inspect the state of the system.
+
+### Available commands
+- `help` — Show available commands
+
+```sh
+create-device --type lamp --id lamp_salon --capabilities on_off
+event --type state_change --id lamp_salon --payload "{ \"on_off\": \"true\" }" --delay-ms 5000
+```
+
+
 

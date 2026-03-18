@@ -9,8 +9,11 @@ static VirtualDeviceModel make_light_model(bool with_color = false) {
     m.type     = "light";
     m.protocol = "mqtt";
     m.capabilities = {"on_off", "brightness"};
+    m.available_events = {"light.turned_on", "light.turned_off", "light.brightness_changed"};
     if (with_color)
         m.capabilities.push_back("color");
+    if (with_color)
+        m.available_events.push_back("light.color_changed");
     return m;
 }
 
@@ -73,6 +76,22 @@ TEST(VirtualLightTest, HasCapability_ReturnsFalseForAbsentCap) {
 
     EXPECT_FALSE(light.has_capability("color"));
     EXPECT_FALSE(light.has_capability("temperature"));
+}
+
+TEST(VirtualLightTest, HasAvailableEvent_ReturnsTrueForPresentEvent) {
+    VirtualDeviceModel m = make_light_model(/*with_color=*/true);
+    VirtualLight light("l1", "Bureau", "office", &m);
+
+    EXPECT_TRUE(light.has_available_event("light.turned_on"));
+    EXPECT_TRUE(light.has_available_event("light.color_changed"));
+}
+
+TEST(VirtualLightTest, HasAvailableEvent_ReturnsFalseForAbsentEvent) {
+    VirtualDeviceModel m = make_light_model(/*with_color=*/false);
+    VirtualLight light("l1", "Bureau", "office", &m);
+
+    EXPECT_FALSE(light.has_available_event("light.color_changed"));
+    EXPECT_FALSE(light.has_available_event("thermostat.mode_changed"));
 }
 
 // ── set_state / get_state ─────────────────────────────────────────────────────

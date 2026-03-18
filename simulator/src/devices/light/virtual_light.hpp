@@ -1,6 +1,7 @@
 #pragma once
 
-#include "virtual_device.hpp"
+# include "virtual_device.hpp"
+# include "event_engine/event_engine.hpp"
 
 class VirtualLight : public VirtualDevice {
 public:
@@ -18,4 +19,12 @@ public:
     void init_states();
 
     void update_state(const Event& event) override;
+
+    void register_event_handlers();
+
+private:
+    void handle_light_turned_on(const Event& event);
+    void handle_light_turned_off(const Event& event);
+    void handle_light_brightness_changed(const Event& event);
+    void handle_light_color_changed(const Event& event);
 };
