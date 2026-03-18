@@ -73,3 +73,16 @@ TEST(EventEngineTest, ProcessEvent_UnknownPrefixedEvent_DoesNotChangeState) {
 
     EXPECT_EQ(light->get_state("on"), before);
 }
+
+TEST(EventEngineTest, ProcessEvent_MotionDetected_UpdatesState) {
+    reset_db_file();
+    DeviceEngine::instance().load_from_db(DB_PATH, SEED_PATH);
+
+    ASSERT_TRUE(DeviceEngine::instance().add_device("motion_test", "Motion Test", "office", "aqara_motion_p1"));
+
+    EventEngine::instance().process_event(make_event("motion.motion_detected", "motion_test", "{}"));
+
+    auto* sensor = DeviceEngine::instance().get_device("motion_test");
+    ASSERT_NE(sensor, nullptr);
+    EXPECT_EQ(sensor->get_state("motion"), "true");
+}

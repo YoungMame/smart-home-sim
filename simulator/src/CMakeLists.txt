@@ -69,7 +69,7 @@ set(DEVICE_SOURCES
   devices/virtual_device.cpp
   devices/light/virtual_light.cpp
   devices/thermostat/virtual_thermostat.cpp
-  # devices/motion_sensor/motion_sensor.cpp
+  devices/motion_sensor/virtual_motion_sensor.cpp
 )
 
 set(PROTOCOL_SOURCES

@@ -7,6 +7,7 @@
 #include "core/adapter_manager/adapter_manager.hpp"
 #include "db/sqlite_store.hpp"
 #include "light/virtual_light.hpp"
+#include "motion_sensor/virtual_motion_sensor.hpp"
 #include "thermostat/virtual_thermostat.hpp"
 
 std::shared_ptr<VirtualDevice> DeviceEngine::create_device(const std::string& id,
@@ -28,6 +29,12 @@ std::shared_ptr<VirtualDevice> DeviceEngine::create_device(const std::string& id
             device = std::move(thermostat);
             break;
         }
+        case DeviceType::Motion: {
+            auto motion_sensor = std::make_shared<VirtualMotionSensor>(id, label, room, &model);
+            motion_sensor->init_states();
+            device = std::move(motion_sensor);
+            break;
+        }
         case DeviceType::Unknown:
             return nullptr;
     }
@@ -46,6 +53,7 @@ void DeviceEngine::log_devices() const {
 DeviceType device_type_from_string(const std::string& type) {
     if (type == "light")      return DeviceType::Light;
     if (type == "thermostat") return DeviceType::Thermostat;
+    if (type == "motion")     return DeviceType::Motion;
     return DeviceType::Unknown;
 }
 

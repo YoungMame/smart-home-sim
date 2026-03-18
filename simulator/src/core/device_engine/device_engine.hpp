@@ -13,6 +13,7 @@
 enum class DeviceType {
     Light,
     Thermostat,
+    Motion,
     Unknown,
 };
 
