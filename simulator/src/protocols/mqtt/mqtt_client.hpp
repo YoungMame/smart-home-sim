@@ -3,7 +3,6 @@
 #include <mutex>
 #include <string>
 #include <vector>
-# include <iostream>
 
 #include <mosquitto.h>
 
@@ -33,7 +32,14 @@ public:
     void publish(const std::string& topic, const std::string& message);
 
 private:
+    static void on_connect_static(struct mosquitto* mosq, void* obj, int rc);
+    static void on_message_static(struct mosquitto* mosq, void* obj, const struct mosquitto_message* msg);
+
+    void on_connect(int rc);
+    void on_message(const struct mosquitto_message* msg);
+
     mutable std::mutex            mutex_;
     std::vector<SimulatedMessage> messages_;
-    mosquitto* mosq_;
+    mosquitto*                    mosq_{nullptr};
+    bool                          loop_started_{false};
 };

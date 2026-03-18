@@ -4,6 +4,7 @@
 #include <string>
 #include <thread>
 
+#include "core/adapter_manager/adapter_manager.hpp"
 #include "core/scheduler/event_scheduler.hpp"
 #include "core/device_engine/device_engine.hpp"
 #include "server/simulator_api.hpp"
@@ -40,7 +41,18 @@ int main() {
     const int loaded = DeviceEngine::instance().load_from_db(db_path, seed_path);
     std::cout << "[main] " << loaded << " virtual device(s) loaded.\n";
 
-    // TODO: initialize AdapterManager (MQTT and REST adapters)
+    const char* env_mqtt_endpoint = std::getenv("MQTT_BROKER_URL");
+    const std::string mqtt_endpoint = env_mqtt_endpoint ? env_mqtt_endpoint : "mqtt-broker:1883";
+
+    const char* env_rest_endpoint = std::getenv("REST_ENDPOINT");
+    const std::string rest_endpoint = env_rest_endpoint ? env_rest_endpoint : "http://localhost:5000";
+
+    try {
+        AdapterManager::instance().connect_all(rest_endpoint, mqtt_endpoint);
+        std::cout << "[main] Transport adapters connected (REST + MQTT).\n";
+    } catch (const std::exception& ex) {
+        std::cerr << "[main] Warning: failed to connect transport adapters: " << ex.what() << "\n";
+    }
 
     const char* env_port = std::getenv("CORE_PORT");
     const int api_port = env_port ? std::stoi(env_port) : 4000;
@@ -56,6 +68,12 @@ int main() {
     EventScheduler::instance().stop();
     if (scheduler_thread.joinable()) {
         scheduler_thread.join();
+    }
+
+    try {
+        AdapterManager::instance().disconnect_all();
+    } catch (const std::exception& ex) {
+        std::cerr << "[main] Warning: failed to disconnect transport adapters: " << ex.what() << "\n";
     }
 
     std::cout << "[main] Simulator shut down cleanly.\n";

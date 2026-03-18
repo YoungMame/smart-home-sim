@@ -31,10 +31,10 @@ CREATE TABLE IF NOT EXISTS devices (
 
 INSERT OR IGNORE INTO device_models (id, label, type, protocol) VALUES
     ('ikea_bulb_v1', 'IKEA Bulb v1', 'light', 'mqtt'),
-    ('philips_hue_v2', 'Philips Hue v2', 'light', 'rest'),
-    ('nest_thermostat', 'Nest Thermostat', 'thermostat', 'rest'),
+    ('philips_hue_v2', 'Philips Hue v2', 'light', 'mqtt'),
+    ('nest_thermostat', 'Nest Thermostat', 'thermostat', 'mqtt'),
     ('aqara_motion_p1', 'Aqara Motion P1', 'motion', 'mqtt'),
-    ('eve_door_window', 'Eve Door & Window', 'contact', 'rest'),
+    ('eve_door_window', 'Eve Door & Window', 'contact', 'mqtt'),
     ('ikea_remote_btn', 'IKEA Remote Button', 'button', 'mqtt'),
     ('tapo_plug_energy', 'Tapo Plug Energy', 'energy', 'mqtt');
 
