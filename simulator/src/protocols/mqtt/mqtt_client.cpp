@@ -132,6 +132,31 @@ void MQTTClient::send(const std::string& topic, const std::string& payload) {
     publish(topic, payload);
 }
 
+void MQTTClient::subscribe(const std::string& topic) {
+    if (!is_connected()) {
+        throw std::runtime_error("MQTT client is not connected");
+    }
+
+    std::cout << "[MQTTClient] Subscribing to topic '" << topic << "'\n";
+
+    int ret = mosquitto_subscribe(mosq_, nullptr, topic.c_str(), 0);
+    if (ret != MOSQ_ERR_SUCCESS)
+        throw std::runtime_error("Failed to subscribe to topic: " + std::string(mosquitto_strerror(ret)));
+}
+
+void MQTTClient::unsubscribe(const std::string& topic) {
+    if (!is_connected()) {
+        std::cerr << "[MQTTClient] Cannot unsubscribe from '" << topic << "': not connected\n";
+        return;
+    }
+
+    std::cout << "[MQTTClient] Unsubscribing from topic '" << topic << "'\n";
+
+    int ret = mosquitto_unsubscribe(mosq_, nullptr, topic.c_str());
+    if (ret != MOSQ_ERR_SUCCESS)
+        throw std::runtime_error("Failed to unsubscribe from topic: " + std::string(mosquitto_strerror(ret)));
+}
+
 void MQTTClient::publish(const std::string& topic, const std::string& message) {
     if (!is_connected()) {
         throw std::runtime_error("MQTT client is not connected");
@@ -186,14 +211,28 @@ void MQTTClient::on_message(const struct mosquitto_message* msg) {
     const std::string topic(msg->topic);
     const std::vector<std::string> parts = split_topic(topic);
 
-    if (parts.size() < 4 || parts[0] != "home") {
+    if (parts.empty() || parts[0] != "home") {
         return;
     }
 
     Event event;
-    event.device_id = parts[2];
     event.payload = payload_to_string(msg);
     event.scheduled_at = std::chrono::steady_clock::now();
+
+    // New format: home/<room>/<id>
+    if (parts.size() == 3) {
+        event.device_id = parts[2];
+        event.type = "state_change";
+        EventScheduler::instance().schedule_event(std::move(event));
+        return;
+    }
+
+    // Legacy format: home/<type>/<id>/<op>[/<subtype>]
+    if (parts.size() < 4) {
+        return;
+    }
+
+    event.device_id = parts[2];
 
     if (parts.size() == 4 && parts[3] == "set") {
         event.type = "state_change";

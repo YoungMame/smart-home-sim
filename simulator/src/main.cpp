@@ -54,6 +54,22 @@ int main() {
         std::cerr << "[main] Warning: failed to connect transport adapters: " << ex.what() << "\n";
     }
 
+    // Subscribe the MQTT client to every loaded device's command topic (home/<room>/<id>).
+    {
+        std::vector<std::string> mqtt_topics;
+        for (const auto& device : DeviceEngine::instance().snapshot_devices()) {
+            if (device->protocol() == "mqtt") {
+                mqtt_topics.push_back(device->command_topic());
+            }
+        }
+        try {
+            AdapterManager::instance().init_subscriptions(mqtt_topics);
+            std::cout << "[main] MQTT subscriptions initialized (" << mqtt_topics.size() << " topic(s)).\n";
+        } catch (const std::exception& ex) {
+            std::cerr << "[main] Warning: failed to initialize MQTT subscriptions: " << ex.what() << "\n";
+        }
+    }
+
     const char* env_port = std::getenv("CORE_PORT");
     const int api_port = env_port ? std::stoi(env_port) : 4000;
     SimulatorApi::instance().start(api_port);

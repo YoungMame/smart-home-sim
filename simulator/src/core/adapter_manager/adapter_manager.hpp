@@ -27,6 +27,13 @@ public:
                      const std::string& mqtt_endpoint);
     void disconnect_all();
 
+    // Subscribe/unsubscribe the MQTT client to a topic.
+    void subscribe_topic(const std::string& topic);
+    void unsubscribe_topic(const std::string& topic);
+
+    // Subscribe to a list of topics at once (used at process start).
+    void init_subscriptions(const std::vector<std::string>& topics);
+
     void send_message(AdapterProtocol protocol,
                       const std::string& channel,
                       const std::string& payload);

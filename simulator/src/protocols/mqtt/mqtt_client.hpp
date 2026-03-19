@@ -25,6 +25,9 @@ public:
 
     void send(const std::string& topic, const std::string& payload) override;
 
+    void subscribe(const std::string& topic) override;
+    void unsubscribe(const std::string& topic) override;
+
     std::vector<SimulatedMessage> messages() const override;
     void clear_messages() override;
 
