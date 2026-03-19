@@ -159,7 +159,14 @@ bool DeviceEngine::add_device(const std::string& id,
         return false;
     }
 
-    devices_.emplace(id, std::move(device));
+    auto [emplace_it, inserted] = devices_.emplace(id, std::move(device));
+    if (inserted) {
+        try {
+            AdapterManager::instance().subscribe_topic(emplace_it->second->command_topic());
+        } catch (const std::exception& ex) {
+            std::cerr << "[DeviceEngine] Failed to subscribe for device " << id << ": " << ex.what() << "\n";
+        }
+    }
     return true;
 }
 
@@ -169,6 +176,15 @@ bool DeviceEngine::remove_device(const std::string& device_id) {
     if (db_path_.empty()) {
         std::cerr << "[DeviceEngine] DB is not initialized\n";
         return false;
+    }
+
+    const auto it = devices_.find(device_id);
+    if (it != devices_.end()) {
+        try {
+            AdapterManager::instance().unsubscribe_topic(it->second->command_topic());
+        } catch (const std::exception& ex) {
+            std::cerr << "[DeviceEngine] Failed to unsubscribe for device " << device_id << ": " << ex.what() << "\n";
+        }
     }
 
     if (!SqliteStore::delete_device(db_path_, device_id)) {

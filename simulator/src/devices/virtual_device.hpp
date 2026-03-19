@@ -49,12 +49,17 @@ public:
     void set_protocol_client(ProtocolClient* client) { protocol_client_ = client; }
     ProtocolClient* protocol_client() const { return protocol_client_; }
 
-    // Publishes the full current state as JSON to home/<type>/<id>/state.
+    // Publishes the full current state as JSON to home/<room>/<id>/state.
     // No-op if no MQTT client is set.
     void publish_state() const;
 
     // Returns the MQTT topic used by this device for state publication.
+    // Format: home/<room>/<id>/state
     std::string state_topic() const;
+
+    // Returns the MQTT topic used to receive commands for this device.
+    // Format: home/<room>/<id>
+    std::string command_topic() const;
 
     // Called by DeviceEngine when an event targets this device.
     virtual void update_state(const Event& event) = 0;

@@ -38,6 +38,9 @@ public:
 
     virtual void send(const std::string& channel, const std::string& payload) = 0;
 
+    virtual void subscribe(const std::string& topic) { (void)topic; }
+    virtual void unsubscribe(const std::string& topic) { (void)topic; }
+
     virtual std::vector<SimulatedMessage> messages() const = 0;
     virtual void clear_messages() = 0;
 

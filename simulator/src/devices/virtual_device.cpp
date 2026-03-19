@@ -94,7 +94,11 @@ void VirtualDevice::apply_state_payload(const std::string& payload) {
 }
 
 std::string VirtualDevice::state_topic() const {
-    return "home/" + model_->type + "/" + id_ + "/state";
+    return "home/" + room_ + "/" + id_ + "/state";
+}
+
+std::string VirtualDevice::command_topic() const {
+    return "home/" + room_ + "/" + id_;
 }
 
 void VirtualDevice::publish_state() const {

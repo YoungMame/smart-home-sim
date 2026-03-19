@@ -41,7 +41,23 @@ TEST(VirtualDeviceMqttTest, StateTopic_Format) {
     VirtualDeviceModel m = make_mqtt_light();
     VirtualLight light("lamp_salon", "Lampe salon", "salon", &m);
 
-    EXPECT_EQ(light.state_topic(), "home/light/lamp_salon/state");
+    EXPECT_EQ(light.state_topic(), "home/salon/lamp_salon/state");
+}
+
+// ── command_topic ─────────────────────────────────────────────────────────────
+
+TEST(VirtualDeviceMqttTest, CommandTopic_Format) {
+    VirtualDeviceModel m = make_mqtt_light();
+    VirtualLight light("light1", "Light 1", "chambre", &m);
+
+    EXPECT_EQ(light.command_topic(), "home/chambre/light1");
+}
+
+TEST(VirtualDeviceMqttTest, CommandTopic_UsesRoom) {
+    VirtualDeviceModel m = make_mqtt_light();
+    VirtualLight light("lamp_salon", "Lampe salon", "salon", &m);
+
+    EXPECT_EQ(light.command_topic(), "home/salon/lamp_salon");
 }
 
 TEST(VirtualDeviceMqttTest, Constructor_CreatesMqttClientAssociation) {
@@ -83,7 +99,7 @@ TEST(VirtualDeviceMqttTest, PublishState_CallsPublishOnClient) {
     light.publish_state();
 
     EXPECT_EQ(mock.publish_call_count, 1);
-    EXPECT_EQ(mock.last_topic, "home/light/lamp_salon/state");
+    EXPECT_EQ(mock.last_topic, "home/salon/lamp_salon/state");
 }
 
 TEST(VirtualDeviceMqttTest, PublishState_PayloadContainsStates) {

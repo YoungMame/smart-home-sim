@@ -1,6 +1,7 @@
 #include "adapter_manager.hpp"
 
 #include <algorithm>
+#include <iostream>
 #include <stdexcept>
 #include <string_view>
 #include <utility>
@@ -98,6 +99,32 @@ void AdapterManager::disconnect_all() {
 
     if (has_client(AdapterProtocol::Mqtt)) {
         disconnect(AdapterProtocol::Mqtt);
+    }
+}
+
+void AdapterManager::subscribe_topic(const std::string& topic) {
+    if (!has_client(AdapterProtocol::Mqtt)) {
+        return;
+    }
+
+    get_client(AdapterProtocol::Mqtt)->subscribe(topic);
+}
+
+void AdapterManager::unsubscribe_topic(const std::string& topic) {
+    if (!has_client(AdapterProtocol::Mqtt)) {
+        return;
+    }
+
+    get_client(AdapterProtocol::Mqtt)->unsubscribe(topic);
+}
+
+void AdapterManager::init_subscriptions(const std::vector<std::string>& topics) {
+    for (const auto& topic : topics) {
+        try {
+            subscribe_topic(topic);
+        } catch (const std::exception& ex) {
+            std::cerr << "[AdapterManager] Failed to subscribe to '" << topic << "': " << ex.what() << "\n";
+        }
     }
 }
 
