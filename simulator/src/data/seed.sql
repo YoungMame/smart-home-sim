@@ -14,6 +14,14 @@ CREATE TABLE IF NOT EXISTS model_capabilities (
     FOREIGN KEY (model_id) REFERENCES device_models(id) ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS model_capabilities_alias (
+    model_id TEXT NOT NULL,
+    capability TEXT NOT NULL,
+    alias TEXT NOT NULL,
+    PRIMARY KEY (model_id, capability, alias),
+    FOREIGN KEY (model_id) REFERENCES device_models(id) ON DELETE CASCADE
+);
+
 CREATE TABLE IF NOT EXISTS model_available_events (
     model_id TEXT NOT NULL,
     event_type TEXT NOT NULL,
@@ -53,6 +61,12 @@ INSERT OR IGNORE INTO model_capabilities (model_id, capability) VALUES
     ('ikea_remote_btn', 'button_input'),
     ('tapo_plug_energy', 'power_meter'),
     ('tapo_plug_energy', 'energy_meter');
+
+INSERT OR IGNORE INTO model_capabilities_alias (model_id, capability, alias) VALUES
+    ('ikea_bulb_v1', 'on_off', 'power'),
+    ('ikea_bulb_v1', 'on_off', 'state'),
+    ('ikea_bulb_v1', 'brightness', 'dimmer'),
+    ('philips_hue_v2', 'color', 'hue');
 
 INSERT OR IGNORE INTO model_available_events (model_id, event_type) VALUES
     -- Correlation with EventTypes.light

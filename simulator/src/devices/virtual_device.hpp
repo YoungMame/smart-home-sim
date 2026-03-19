@@ -38,7 +38,9 @@ public:
     const std::string&        modelId()   const { return model_->id; }
     const VirtualDeviceModel* model_ptr() const { return model_; }
     bool has_capability(const std::string& cap) const;
+    bool has_capability_alias(const std::string& alias) const;
     bool has_available_event(const std::string& event_type) const;
+    bool is_known_variable(const std::string& key) const;
 
     // Returns empty string if key is absent.
     std::string get_state(const std::string& key) const;
@@ -66,6 +68,9 @@ public:
 
 protected:
     void apply_state_payload(const std::string& payload);
+    std::string resolve_state_key(const std::string& key) const;
+    std::vector<std::string> accepted_keys_for_capability(const std::string& capability) const;
+    virtual std::string state_key_for_capability(const std::string& capability) const;
 
     std::string                        id_;
     std::string                        label_;

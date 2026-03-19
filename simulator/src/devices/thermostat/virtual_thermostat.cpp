@@ -7,11 +7,29 @@
 #include "event_engine/event_engine.hpp"
 
 namespace {
-std::string get_payload_value(const nlohmann::json& body,
-                              const char* primary_key,
-                              const char* fallback_key,
-                              const char* default_value) {
-    return body.value(primary_key, body.value(fallback_key, std::string(default_value)));
+std::string to_state_value(const nlohmann::json& value) {
+    if (value.is_string()) {
+        return value.get<std::string>();
+    }
+
+    return value.dump();
+}
+
+std::string first_present_value(const nlohmann::json& body,
+                                const std::vector<std::string>& keys,
+                                const std::string& fallback_key,
+                                const std::string& default_value) {
+    for (const auto& key : keys) {
+        if (body.contains(key)) {
+            return to_state_value(body.at(key));
+        }
+    }
+
+    if (!fallback_key.empty() && body.contains(fallback_key)) {
+        return to_state_value(body.at(fallback_key));
+    }
+
+    return default_value;
 }
 }
 
@@ -61,7 +79,7 @@ void VirtualThermostat::update_state(const Event& event) {
 void VirtualThermostat::handle_thermostat_temperature_changed(const Event& event) {
     try {
         const auto body = nlohmann::json::parse(event.payload.empty() ? "{}" : event.payload);
-        set_state("temperature", get_payload_value(body, "temperature", "value", "20.0"));
+        set_state("temperature", first_present_value(body, accepted_keys_for_capability("temperature"), "value", "20.0"));
         publish_state();
     } catch (const nlohmann::json::exception& ex) {
         std::cerr << "[VirtualThermostat] Invalid payload for temperature_changed on " << id() << ": " << ex.what() << "\n";
@@ -71,7 +89,7 @@ void VirtualThermostat::handle_thermostat_temperature_changed(const Event& event
 void VirtualThermostat::handle_thermostat_setpoint_changed(const Event& event) {
     try {
         const auto body = nlohmann::json::parse(event.payload.empty() ? "{}" : event.payload);
-        set_state("target_temperature", get_payload_value(body, "target_temperature", "value", "21.0"));
+        set_state("target_temperature", first_present_value(body, accepted_keys_for_capability("target_temperature"), "value", "21.0"));
         publish_state();
     } catch (const nlohmann::json::exception& ex) {
         std::cerr << "[VirtualThermostat] Invalid payload for setpoint_changed on " << id() << ": " << ex.what() << "\n";
@@ -81,7 +99,7 @@ void VirtualThermostat::handle_thermostat_setpoint_changed(const Event& event) {
 void VirtualThermostat::handle_thermostat_mode_changed(const Event& event) {
     try {
         const auto body = nlohmann::json::parse(event.payload.empty() ? "{}" : event.payload);
-        set_state("mode", get_payload_value(body, "mode", "value", "auto"));
+        set_state("mode", first_present_value(body, {"mode"}, "value", "auto"));
         publish_state();
     } catch (const nlohmann::json::exception& ex) {
         std::cerr << "[VirtualThermostat] Invalid payload for mode_changed on " << id() << ": " << ex.what() << "\n";
@@ -91,7 +109,7 @@ void VirtualThermostat::handle_thermostat_mode_changed(const Event& event) {
 void VirtualThermostat::handle_thermostat_humidity_changed(const Event& event) {
     try {
         const auto body = nlohmann::json::parse(event.payload.empty() ? "{}" : event.payload);
-        set_state("humidity", get_payload_value(body, "humidity", "value", "50.0"));
+        set_state("humidity", first_present_value(body, {"humidity"}, "value", "50.0"));
         publish_state();
     } catch (const nlohmann::json::exception& ex) {
         std::cerr << "[VirtualThermostat] Invalid payload for humidity_changed on " << id() << ": " << ex.what() << "\n";

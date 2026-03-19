@@ -136,6 +136,15 @@ std::vector<VirtualDeviceModel> SqliteStore::load_models(const std::string& db_p
         throw std::runtime_error("[SqliteStore] Failed to query model available events");
     }
 
+    sqlite3_stmt* aliases_stmt = nullptr;
+    const char* aliases_query = "SELECT capability, alias FROM model_capabilities_alias WHERE model_id = ? ORDER BY capability, alias;";
+    if (sqlite3_prepare_v2(db, aliases_query, -1, &aliases_stmt, nullptr) != SQLITE_OK) {
+        sqlite3_finalize(events_stmt);
+        sqlite3_finalize(caps_stmt);
+        sqlite3_finalize(models_stmt);
+        throw std::runtime_error("[SqliteStore] Failed to query model capability aliases");
+    }
+
     while (sqlite3_step(models_stmt) == SQLITE_ROW) {
         VirtualDeviceModel model;
         model.id = reinterpret_cast<const char*>(sqlite3_column_text(models_stmt, 0));
@@ -163,9 +172,20 @@ std::vector<VirtualDeviceModel> SqliteStore::load_models(const std::string& db_p
             );
         }
 
+        sqlite3_reset(aliases_stmt);
+        sqlite3_clear_bindings(aliases_stmt);
+        sqlite3_bind_text(aliases_stmt, 1, model.id.c_str(), -1, SQLITE_TRANSIENT);
+
+        while (sqlite3_step(aliases_stmt) == SQLITE_ROW) {
+            const std::string capability = reinterpret_cast<const char*>(sqlite3_column_text(aliases_stmt, 0));
+            const std::string alias = reinterpret_cast<const char*>(sqlite3_column_text(aliases_stmt, 1));
+            model.capability_aliases[alias] = capability;
+        }
+
         models.push_back(std::move(model));
     }
 
+    sqlite3_finalize(aliases_stmt);
     sqlite3_finalize(events_stmt);
     sqlite3_finalize(caps_stmt);
     sqlite3_finalize(models_stmt);

@@ -1,8 +1,46 @@
 #include "light/virtual_light.hpp"
 
 #include <iostream>
+#include <string>
 
 #include <nlohmann/json.hpp>
+
+namespace {
+
+std::string to_state_value(const nlohmann::json& value) {
+    if (value.is_string()) {
+        return value.get<std::string>();
+    }
+
+    return value.dump();
+}
+
+std::string first_present_value(const nlohmann::json& body,
+                                const std::vector<std::string>& keys,
+                                const std::string& fallback_key,
+                                const std::string& default_value) {
+    for (const auto& key : keys) {
+        if (body.contains(key)) {
+            return to_state_value(body.at(key));
+        }
+    }
+
+    if (!fallback_key.empty() && body.contains(fallback_key)) {
+        return to_state_value(body.at(fallback_key));
+    }
+
+    return default_value;
+}
+
+} // namespace
+
+std::string VirtualLight::state_key_for_capability(const std::string& capability) const {
+    if (capability == "on_off") {
+        return "on";
+    }
+
+    return capability;
+}
 
 void VirtualLight::register_event_handlers() {
     if (has_capability("on_off") && has_available_event("light.turned_on")) {
@@ -66,8 +104,13 @@ void VirtualLight::handle_light_turned_off(const Event& event) {
 void VirtualLight::handle_light_brightness_changed(const Event& event) {
     try {
         const auto body = nlohmann::json::parse(event.payload.empty() ? "{}" : event.payload);
-        const std::string value = body.value("brightness", body.value("value", std::string("100")));
-        set_state("brightness", value);
+        const std::string value = first_present_value(
+            body,
+            accepted_keys_for_capability("brightness"),
+            "value",
+            "100"
+        );
+        set_state(state_key_for_capability("brightness"), value);
         publish_state();
     } catch (const nlohmann::json::exception& ex) {
         std::cerr << "[VirtualLight] Invalid payload for brightness_changed on " << id() << ": " << ex.what() << "\n";
@@ -77,8 +120,13 @@ void VirtualLight::handle_light_brightness_changed(const Event& event) {
 void VirtualLight::handle_light_color_changed(const Event& event) {
     try {
         const auto body = nlohmann::json::parse(event.payload.empty() ? "{}" : event.payload);
-        const std::string value = body.value("color", body.value("value", std::string("#ffffff")));
-        set_state("color", value);
+        const std::string value = first_present_value(
+            body,
+            accepted_keys_for_capability("color"),
+            "value",
+            "#ffffff"
+        );
+        set_state(state_key_for_capability("color"), value);
         publish_state();
     } catch (const nlohmann::json::exception& ex) {
         std::cerr << "[VirtualLight] Invalid payload for color_changed on " << id() << ": " << ex.what() << "\n";

@@ -1,6 +1,7 @@
 #include "virtual_device.hpp"
 
 #include <algorithm>
+#include <unordered_set>
 
 #include <nlohmann/json.hpp>
 
@@ -59,9 +60,17 @@ bool VirtualDevice::has_capability(const std::string& cap) const {
     return std::find(caps.begin(), caps.end(), cap) != caps.end();
 }
 
+bool VirtualDevice::has_capability_alias(const std::string& alias) const {
+    return model_->capability_aliases.find(alias) != model_->capability_aliases.end();
+}
+
 bool VirtualDevice::has_available_event(const std::string& event_type) const {
     const auto& events = model_->available_events;
     return std::find(events.begin(), events.end(), event_type) != events.end();
+}
+
+bool VirtualDevice::is_known_variable(const std::string& key) const {
+    return !resolve_state_key(key).empty();
 }
 
 std::string VirtualDevice::get_state(const std::string& key) const {
@@ -71,6 +80,65 @@ std::string VirtualDevice::get_state(const std::string& key) const {
 
 void VirtualDevice::set_state(const std::string& key, const std::string& value) {
     states_[key] = value;
+}
+
+std::string VirtualDevice::state_key_for_capability(const std::string& capability) const {
+    return capability;
+}
+
+std::vector<std::string> VirtualDevice::accepted_keys_for_capability(const std::string& capability) const {
+    std::vector<std::string> keys;
+    std::unordered_set<std::string> seen;
+
+    auto push_unique = [&keys, &seen](const std::string& key) {
+        if (key.empty()) {
+            return;
+        }
+
+        if (seen.insert(key).second) {
+            keys.push_back(key);
+        }
+    };
+
+    push_unique(state_key_for_capability(capability));
+    push_unique(capability);
+
+    for (const auto& [alias, canonical_capability] : model_->capability_aliases) {
+        if (canonical_capability == capability) {
+            push_unique(alias);
+        }
+    }
+
+    return keys;
+}
+
+std::string VirtualDevice::resolve_state_key(const std::string& key) const {
+    if (key.empty()) {
+        return "";
+    }
+
+    // Keep already-initialized state keys as-is.
+    if (states_.find(key) != states_.end()) {
+        return key;
+    }
+
+    if (has_capability(key)) {
+        return state_key_for_capability(key);
+    }
+
+    const auto alias_it = model_->capability_aliases.find(key);
+    if (alias_it != model_->capability_aliases.end()) {
+        return state_key_for_capability(alias_it->second);
+    }
+
+    // Some state keys (e.g. "on") differ from capabilities (e.g. "on_off").
+    for (const auto& capability : model_->capabilities) {
+        if (state_key_for_capability(capability) == key) {
+            return key;
+        }
+    }
+
+    return "";
 }
 
 void VirtualDevice::apply_state_payload(const std::string& payload) {
@@ -84,12 +152,17 @@ void VirtualDevice::apply_state_payload(const std::string& payload) {
     }
 
     for (const auto& [key, value] : body.items()) {
-        if (value.is_string()) {
-            set_state(key, value.get<std::string>());
+        const std::string resolved_key = resolve_state_key(key);
+        if (resolved_key.empty()) {
             continue;
         }
 
-        set_state(key, value.dump());
+        if (value.is_string()) {
+            set_state(resolved_key, value.get<std::string>());
+            continue;
+        }
+
+        set_state(resolved_key, value.dump());
     }
 }
 

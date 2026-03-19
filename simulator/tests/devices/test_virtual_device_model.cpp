@@ -2,7 +2,7 @@
 #include "virtual_device_model.hpp"
 
 TEST(VirtualDeviceModelTest, FieldsStoredCorrectly) {
-    VirtualDeviceModel m{"ikea_bulb_v1", "IKEA Bulb v1", "light", "mqtt", {"on_off", "brightness"}, {"light.turned_on", "light.turned_off"}};
+    VirtualDeviceModel m{"ikea_bulb_v1", "IKEA Bulb v1", "light", "mqtt", {"on_off", "brightness"}, {}, {"light.turned_on", "light.turned_off"}};
 
     EXPECT_EQ(m.id,       "ikea_bulb_v1");
     EXPECT_EQ(m.label,    "IKEA Bulb v1");
@@ -17,7 +17,7 @@ TEST(VirtualDeviceModelTest, FieldsStoredCorrectly) {
 }
 
 TEST(VirtualDeviceModelTest, EmptyCapabilities) {
-    VirtualDeviceModel m{"bare_device", "Bare Device", "unknown", "rest", {}, {}};
+    VirtualDeviceModel m{"bare_device", "Bare Device", "unknown", "rest", {}, {}, {}};
     EXPECT_TRUE(m.capabilities.empty());
     EXPECT_TRUE(m.available_events.empty());
 }

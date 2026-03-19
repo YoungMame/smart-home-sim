@@ -23,6 +23,7 @@ public:
     void register_event_handlers();
 
 private:
+    std::string state_key_for_capability(const std::string& capability) const override;
     void handle_light_turned_on(const Event& event);
     void handle_light_turned_off(const Event& event);
     void handle_light_brightness_changed(const Event& event);

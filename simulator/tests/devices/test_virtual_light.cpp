@@ -1,4 +1,5 @@
 #include <gtest/gtest.h>
+#include <chrono>
 #include "light/virtual_light.hpp"
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -9,9 +10,16 @@ static VirtualDeviceModel make_light_model(bool with_color = false) {
     m.type     = "light";
     m.protocol = "mqtt";
     m.capabilities = {"on_off", "brightness"};
+    m.capability_aliases = {
+        {"power", "on_off"},
+        {"state", "on_off"},
+        {"dimmer", "brightness"}
+    };
     m.available_events = {"light.turned_on", "light.turned_off", "light.brightness_changed"};
     if (with_color)
         m.capabilities.push_back("color");
+    if (with_color)
+        m.capability_aliases["hue"] = "color";
     if (with_color)
         m.available_events.push_back("light.color_changed");
     return m;
@@ -106,6 +114,39 @@ TEST(VirtualLightTest, SetState_OverwritesValue) {
 
     light.set_state("brightness", "50");
     EXPECT_EQ(light.get_state("brightness"), "50");
+}
+
+TEST(VirtualLightTest, UpdateState_ResolvesAliasToCanonicalStateKey) {
+    VirtualDeviceModel m = make_light_model();
+    VirtualLight light("l1", "Bureau", "office", &m);
+    light.init_states();
+
+    Event e;
+    e.type = "state_change";
+    e.device_id = "l1";
+    e.payload = R"({"power":"true","dimmer":"45"})";
+    e.scheduled_at = std::chrono::steady_clock::now();
+
+    light.update_state(e);
+
+    EXPECT_EQ(light.get_state("on"), "true");
+    EXPECT_EQ(light.get_state("brightness"), "45");
+}
+
+TEST(VirtualLightTest, UpdateState_IgnoresUnknownVariables) {
+    VirtualDeviceModel m = make_light_model();
+    VirtualLight light("l1", "Bureau", "office", &m);
+    light.init_states();
+
+    Event e;
+    e.type = "state_change";
+    e.device_id = "l1";
+    e.payload = R"({"unknown_variable":"abc"})";
+    e.scheduled_at = std::chrono::steady_clock::now();
+
+    light.update_state(e);
+
+    EXPECT_EQ(light.get_state("unknown_variable"), "");
 }
 
 TEST(VirtualLightTest, GetState_ReturnsEmptyForUnknownKey) {

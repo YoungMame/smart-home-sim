@@ -1,5 +1,6 @@
 #pragma once
 
+# include <map>
 # include <string>
 # include <vector>
 
@@ -11,5 +12,6 @@ struct VirtualDeviceModel {
     std::string              type;
     std::string              protocol;
     std::vector<std::string> capabilities;
+    std::map<std::string, std::string> capability_aliases; // alias -> canonical capability
     std::vector<std::string> available_events;
 };
